@@ -1,0 +1,56 @@
+MDBoxLayout:
+    orientation: "vertical"
+    
+    MDBottomNavigation:
+    
+        id: bottom_nav
+        
+        MDBottomNavigationItem:
+            name: "download"
+            text: "Download"
+            icon: "download"
+            
+            MDBoxLayout:
+                size_hint: 1, 1
+                orientation: "vertical"
+                MDBoxLayout:
+                    padding_left: "50dp"
+                    padding_right: "50dp"
+                    size_hint_y: None
+                    height: "50dp"
+                    size_hint_x: 1
+                    orientation: "horizontal"
+                    MDTextField:
+                        size_hint: .9, 1
+                        mode: "rectangle"
+                        hint_text: "Url"
+                    MDFloatingActionButton:
+                        size_hint: None, None
+                        size: "50dp", "50dp"
+                        icon: "download"
+                        opposite_colors: True
+                        elevation: 8
+                        md_bg_color: .5, .5, 1, 1
+                MDBoxLayout:
+                    size_hint: 1, .8
+                    orientation: "vertical"
+                    canvas.before:
+                        Color:
+                            rgba: .9, .9, .8, 1
+                        Rectangle:
+                            pos: self.pos
+                            size: self.size
+                MDProgressBar:
+                    size_hint: 1, .1
+                    min: 0
+                    max: 100
+                    value: 50
+                    id: progress_bar
+        
+        MDBottomNavigationItem:
+            name: "settings"
+            text: "Settings"
+            icon: "settings"
+            
+            
+    
