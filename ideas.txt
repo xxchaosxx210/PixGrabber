@@ -1,0 +1,17 @@
+web scrapper
+searches for links to images
+goes 2 pages deep
+
+searches for images brings back list of all found images
+and prompts user to start downloading them
+
+settings
+
+minimum filesize
+minimum file resolution
+filter search regex
+max thread download
+thumbnail links only
+connection timeout
+add unique folder name
+generate filename prefixed
