@@ -59,6 +59,11 @@ class Debug:
         text = "\n".join(list(map(lambda item : f"{item}", dir(obj))))
         with open(filename, "w") as fp:
             fp.write(text)
+
+    @staticmethod
+    def save_text(filename, text):
+        with open(filename, text) as fp:
+            fp.write(text)
         
 
 
