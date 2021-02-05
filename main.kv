@@ -1,11 +1,13 @@
-#:include download.kv
+#:import DownloadBoxContainer download.DownloadBoxContainer
 
 <Spacer@Widget>:
     size_hint_x: None
     width: "20dp"
 
-MDBoxLayout:
+MainContainer:
     orientation: "vertical"
+    id: id_main_container
+    download_container: id_dld_container
     
     MDBottomNavigation:
     
@@ -17,6 +19,7 @@ MDBoxLayout:
             icon: "download"
 
             DownloadBoxContainer:
+                id: id_dld_container
         
         MDBottomNavigationItem:
             name: "settings"
