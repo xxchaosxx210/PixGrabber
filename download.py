@@ -1,5 +1,6 @@
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivy.lang import Builder
+from scraper import Handler
 
 from kivymd.uix.list import (
     OneLineAvatarIconListItem
@@ -19,6 +20,7 @@ Builder.load_string("""
     size_hint: 1, 1
     orientation: "vertical"
     listbox: id_listbox
+    app: app
 
     MDFloatLayout:
         size_hint: 1, .1
@@ -29,6 +31,13 @@ Builder.load_string("""
             height: dp(48)
             mode: "rectangle"
             hint_text: "Url"
+        MDFloatingActionButton:
+            pos_hint: {"top": 1, "left": 0, "right": .8}
+            icon: "stop"
+            opposite_colors: True
+            elevation: 8
+            md_bg_color: 30/255, 144/255, 255/255, 1
+            on_release: root.on_cancel_button()
         MDFloatingActionButton:
             pos_hint: {"top": 1, "left": 0, "right": 1}
             icon: "download"
@@ -62,12 +71,16 @@ class UrlListItem(OneLineAvatarIconListItem):
 class DownloadBoxContainer(MDBoxLayout):
 
     listbox = ObjectProperty(None)
+    app = ObjectProperty(None)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
     def on_fetch_button(self):
         self.load_list(["http://www.google.com"] * 50)
+    
+    def on_cancel_button(self):
+        Handler.thread.send_message(request="quit")
 
     def load_list(self, links):
         self.listbox.clear_widgets()
