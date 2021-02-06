@@ -49,6 +49,16 @@ class MainApp(MDApp):
             Logger.info("COMMANDER_RESPONSE: captain thread has finished task")
         elif response == "cancelled":
             Logger.info("COMMANDER_RESPONSE: Cancelling tasks...")
+        elif response == "grunt":
+            status = kwargs["status"]
+            grunt_id = kwargs["threadid"]
+            if status == "complete":
+                Logger.info(f"Thread #{grunt_id} has complete")
+            elif status == "starting":
+                Logger.info(f"Thread #{grunt_id} has started")
+            elif status == "cancelled":
+                Logger.info(f"Thread #{grunt_id} has cancelled")
+            
     
     def on_stop(self):
         if Threads.commander.is_alive():

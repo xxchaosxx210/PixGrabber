@@ -9,7 +9,8 @@ class Threads:
     commander = None
     captain = None
     grunts = []
-    commander_queue = None
+    commander_queue = queue.Queue()
+    captain_queue = queue.Queue()
     stdout_lock = threading.Lock()
     semaphore = threading.Semaphore(10)
 
@@ -19,8 +20,6 @@ def log_thread_safe(message):
     Threads.stdout_lock.release()
 
 def create_commander(callback):
-    # global queue for handling requests
-    Threads.commander_queue = queue.Queue()
     Threads.commander = threading.Thread(
         target=commander_thread, kwargs={"callback": callback})
     return Threads.commander
@@ -28,13 +27,16 @@ def create_commander(callback):
 def grunt_thread(thread_id, cancel_event):
     Threads.semaphore.acquire()
     if not cancel_event.is_set():
-        log_thread_safe(f"Thread #{thread_id} is starting")
+        notify_commander(thread="grunt", threadid=thread_id, status="starting")
         for x in range(random.randint(1, 3)):
             time.sleep(random.uniform(0.1, 0.5))
             if cancel_event.is_set():
                 break
-        log_thread_safe(f"Thread #{thread_id} has completed task")
+            else:
+                notify_commander(thread="grunt", threadid=thread_id, status="cancelled")
     Threads.semaphore.release()
+    notify_commander(thread="grunt", threadid=thread_id, status="complete")
+
 
 def captain_thread(callback, location_path, cancel_event):
     """
@@ -73,7 +75,7 @@ def commander_thread(callback):
         try:
             msg = json.loads(Threads.commander_queue.get(0.5))
             th = msg["thread"]
-            request = msg["request"]
+            request = msg.get("request", None)
             if th == "main":
                 if request == "quit":
                     callback(response="quit")
@@ -104,8 +106,8 @@ def commander_thread(callback):
                 if request == "quit":
                     reset_captain(cancel_event)
                     callback(response="captain-quit")
-                elif request == "cancelled":
-                    callback(response="cancelled")
+            elif th == "grunt":
+                callback(response="grunt", **msg)
         except queue.Empty:
             pass
 
@@ -119,3 +121,6 @@ def notify_commander(**kwargs):
     FIFO queue puts a no wait message on the queue
     """
     Threads.commander_queue.put_nowait(json.dumps(kwargs))
+
+def notify_captain(**kwargs):
+    Threads.captain_queue.put_nowait(json.dumps(kwargs))
