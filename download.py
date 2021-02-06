@@ -56,12 +56,8 @@ Builder.load_string("""
             on_release: root.on_fetch_button()
     VerticalSpacer:
     ScrollView:
-        canvas.before:
-            Color:
-                rgba: 204/255, 230/255, 255/255, 1
-            Rectangle:
-                pos: self.pos
-                size: self.size
+        scroll_type: ["bars"]
+        bar_width: "20dp"
         MDList:
             id: id_listbox
         
@@ -102,3 +98,9 @@ class DownloadBoxContainer(MDBoxLayout):
                 text=link
             )
             self.listbox.add_widget(listitem)
+    
+    def add_to_list(self, text):
+        listitem = UrlListItem(
+                text=text
+                )
+        self.listbox.add_widget(listitem)

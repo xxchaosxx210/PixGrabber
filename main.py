@@ -42,6 +42,7 @@ class MainApp(MDApp):
             Logger.info("COMMANDER_RESPONSE: I have quit")
         elif response == "start":
             if kwargs["ok"]:
+                self.root.download_container.listbox.clear_widgets()
                 Logger.info("COMMANDER_RESPONSE: New job started")
             else:
                 Logger.info("COMMANDER_RESPONSE: already on job")
@@ -55,7 +56,7 @@ class MainApp(MDApp):
             if status == "complete":
                 Logger.info(f"Thread #{grunt_id} has complete")
             elif status == "starting":
-                Logger.info(f"Thread #{grunt_id} has started")
+                self.root.download_container.add_to_list(f"Thread #{grunt_id} has complete")
             elif status == "cancelled":
                 Logger.info(f"Thread #{grunt_id} has cancelled")
             

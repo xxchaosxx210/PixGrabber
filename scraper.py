@@ -32,10 +32,11 @@ def grunt_thread(thread_id, cancel_event):
             time.sleep(random.uniform(0.1, 0.5))
             if cancel_event.is_set():
                 break
-            else:
-                notify_commander(thread="grunt", threadid=thread_id, status="cancelled")
     Threads.semaphore.release()
-    notify_commander(thread="grunt", threadid=thread_id, status="complete")
+    if cancel_event.is_set():
+        notify_commander(thread="grunt", threadid=thread_id, status="cancelled")
+    else:
+        notify_commander(thread="grunt", threadid=thread_id, status="complete")
 
 
 def captain_thread(callback, location_path, cancel_event):
