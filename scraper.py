@@ -11,6 +11,7 @@ class Threads:
     grunts = []
     commander_queue = None
     stdout_lock = threading.Lock()
+    semaphore = threading.Semaphore(10)
 
 def log_thread_safe(message):
     Threads.stdout_lock.acquire()
@@ -25,12 +26,15 @@ def create_commander(callback):
     return Threads.commander
 
 def grunt_thread(thread_id, cancel_event):
-    log_thread_safe(f"Thread #{thread_id} is starting")
-    for x in range(random.randint(1, 3)):
-        time.sleep(random.uniform(0.1, 0.5))
-        if cancel_event.is_set():
-            break
-    log_thread_safe(f"Thread #{thread_id} has completed task")
+    Threads.semaphore.acquire()
+    if not cancel_event.is_set():
+        log_thread_safe(f"Thread #{thread_id} is starting")
+        for x in range(random.randint(1, 3)):
+            time.sleep(random.uniform(0.1, 0.5))
+            if cancel_event.is_set():
+                break
+        log_thread_safe(f"Thread #{thread_id} has completed task")
+    Threads.semaphore.release()
 
 def captain_thread(callback, location_path, cancel_event):
     """
