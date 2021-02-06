@@ -1,4 +1,5 @@
 #:import DownloadBoxContainer download.DownloadBoxContainer
+#:import SettingsContainer settings.SettingsContainer
 
 <Spacer@Widget>:
     size_hint_x: None
@@ -8,6 +9,7 @@ MainContainer:
     orientation: "vertical"
     id: id_main_container
     download_container: id_dld_container
+    settings_container: id_settings_container
     
     MDBottomNavigation:
     
@@ -26,5 +28,7 @@ MainContainer:
             text: "Settings"
             icon: "settings"
             
+            SettingsContainer:
+                id: id_settings_container
             
     

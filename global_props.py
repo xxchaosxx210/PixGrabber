@@ -40,7 +40,10 @@ DEFAULT_SETTINGS = {
     "connection_timeout": 5,
     "minimum_image_resolution": {"with": 200, "height": 200},
     "thumbnail_search_only": True,
-    "save_path": os.path.join(PATH, DEFAULT_PICTURE_PATH)
+    "save_path": os.path.join(PATH, DEFAULT_PICTURE_PATH),
+    "filter_search": {
+        "enabled": True,
+        "filters": []}
     }
 
 def load_Settings():

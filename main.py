@@ -19,6 +19,7 @@ from kivy.logger import Logger
 class MainContainer(MDBoxLayout):
 
     download_container = ObjectProperty(None)
+    settings_container = ObjectProperty(None)
 
 class MainApp(MDApp):
     
