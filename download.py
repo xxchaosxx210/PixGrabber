@@ -29,6 +29,7 @@ Builder.load_string("""
     listbox: id_listbox
     app: app
     path_textfield: id_path.text
+    statusbox: id_statusbox
 
     MDFloatLayout:
         size_hint: 1, .1
@@ -61,13 +62,37 @@ Builder.load_string("""
         bar_width: "20dp"
         MDList:
             id: id_listbox
-        
     MDProgressBar:
         size_hint: 1, .1
         min: 0
         max: 100
         value: 50
-        id: progress_bar""")
+        id: progress_bar
+    StatusBox:
+        orientation: "vertical"
+        size_hint: 1, .3
+        text: id_status_label.text
+        id: id_statusbox
+        ScrollView:
+            scroll_type: ["bars"]
+            bar_width: "20dp"
+            MDLabel:
+                size_hint: None, None
+                size: self.texture_size
+                text: root.statusbox.text
+                id: id_status_label
+""")
+
+class StatusBox(MDBoxLayout):
+
+    text = StringProperty("")
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+    
+    def update(self, name, text):
+        self.text += f"[{name}]: {text}\n "
+
 
 class UrlListItem(OneLineAvatarIconListItem):
 
@@ -79,6 +104,7 @@ class DownloadBoxContainer(MDBoxLayout):
     listbox = ObjectProperty(None)
     path_textfield = ObjectProperty("")
     app = ObjectProperty(None)
+    statusbox = ObjectProperty(None)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

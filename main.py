@@ -40,26 +40,42 @@ class MainApp(MDApp):
         """
         if msg.thread == "commander":
             if msg.type == "quit":
-                Logger.info("COMMANDER_RESPONSE: I have quit")
+                self.root.download_container.statusbox.update(
+                        "COMMANDER",
+                        "I have quit")
             elif msg.type == "start":
                 if msg.status == "ok":
                     self.root.download_container.listbox.clear_widgets()
-                    Logger.info(f"COMMANDER_RESPONSE: Fetching {msg.data['url']} ...")
+                    self.root.download_container.statusbox.update(
+                        "COMMANDER",
+                        f"Fetching {msg.data['url']} ...")
                 else:
-                    Logger.info("COMMANDER_RESPONSE: Task already running")
+                    self.root.download_container.statusbox.update(
+                        "COMMANDER",
+                        "Task already running")
             elif msg.type == "cancelled":
-                Logger.info("COMMANDER_RESPONSE: Cancelling tasks...")
+                self.root.download_container.statusbox.update(
+                        "COMMANDER",
+                        "Cancelling Tasks...")
             elif msg.type == "complete":
-                Logger.info("COMMANDER_RESPONSE: All Tasks have completed")
+                self.root.download_container.statusbox.update(
+                        "COMMANDER",
+                        "All Tasks have completed")
               
         elif msg.thread == "grunt":
             if msg.type == "finished":
                 if msg.status == "complete":
-                    Logger.info(f"GRUNT#{msg.id}: has completed")
+                    self.root.download_container.statusbox.update(
+                        f"GRUNT#{msg.id}",
+                        "has completed")
                 elif msg.status == "cancelled":
-                    Logger.info(f"GRUNT#{msg.id}: has cancelled")
+                    self.root.download_container.statusbox.update(
+                        f"GRUNT#{msg.id}",
+                        "has cancelled")
             elif msg.type == "started":
-                Logger.info(f"GRUNT#{msg.id}: has started")
+                self.root.download_container.statusbox.update(
+                        f"GRUNT#{msg.id}",
+                        "has started")
                 
             
     
