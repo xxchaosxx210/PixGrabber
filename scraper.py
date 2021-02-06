@@ -8,6 +8,13 @@ from dataclasses import dataclass
 
 @dataclass
 class Message:
+    """
+    for message handling sending to and from threads
+    thread - thread name
+    type   - the type of message
+    id     - the thread index
+    status - the types status
+    """
 
     type: str
     thread: str
@@ -15,6 +22,10 @@ class Message:
     status: str = ""
 
 class Threads:
+
+    """
+    static class holding global scope variables
+    """
 
     commander = None
     grunts = []
@@ -24,17 +35,30 @@ class Threads:
     cancel = threading.Event()
 
 def log_thread_safe(message):
+    """
+    print is synchronized.
+    will remove this soon
+    """
     Threads.stdout_lock.acquire()
     print(message)
     Threads.stdout_lock.release()
 
 def create_commander(callback):
+    """
+    create the main handler thread.
+    this thread will stay iterating for the
+    remainder of the programs life cycle
+    """
     Threads.commander = threading.Thread(
         target=commander_thread, kwargs={"callback": callback})
     return Threads.commander
 
 
 class Grunt(threading.Thread):
+
+    """
+    Level 2 HTML parser and image finder thread
+    """
 
     def __init__(self, thread_index, **kwargs):
         super().__init__(**kwargs)
@@ -59,6 +83,9 @@ def commander_thread(callback):
     """
     main handler thread takes in filepath or url
     and then passes onto captain_thread for parsing
+
+    Level 1 parser and image finder thread
+    will create grunt threads if any links found on url
     """
     quit = False
     grunts = []
@@ -107,6 +134,7 @@ def grunts_alive(grunts):
     return list(filter(lambda grunt : grunt.is_alive(), grunts))
     
 def _simulate_grunts(grunts):
+    # Debugging thread messaging system and synchronization
     for x in range(50):
         grunt = Grunt(x)
         grunts.append(grunt)
