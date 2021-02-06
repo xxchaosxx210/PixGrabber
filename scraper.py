@@ -52,7 +52,7 @@ def commander_thread(callback):
     """
     quit = False
     grunts = []
-    task_running = False
+    _task_running = False
     while not quit:
         try:
             msg = json.loads(Threads.commander_queue.get(0.5))
@@ -63,21 +63,14 @@ def commander_thread(callback):
                     Threads.cancel.set()
                     callback(response="quit")
                     quit = True
-                elif request == "start":
-                    if grunts:
-                        if not task_running:
-                            # start new threads
-                            callback(response="start", ok=True, message="Starting new Task")
-                            grunts = []
-                            _simulate_grunts(grunts)
-                            task_running = True
-                        else:
-                            callback(response="start", ok=False, message="Still working on current Task")
-                    else:
-                        # start new threads
+                elif request == "start":                
+                    if not _task_running:
                         grunts = []
                         _simulate_grunts(grunts)
-                        task_running = True
+                        _task_running = True
+                        callback(response="start", ok=True, message="Starting new Task")
+                    else:
+                        callback(response="start", ok=False, message="Still working on current Task")
 
                 elif request == "cancel":
                     Threads.cancel.set()
@@ -90,13 +83,13 @@ def commander_thread(callback):
             pass
 
         finally:
-            if task_running:
+            if _task_running:
                 # check if all grunts are finished if so cleanup
                 # and notify main thread
                 if len(grunts_alive(grunts)) == 0:
                     Threads.cancel.clear()
                     grunts = []
-                    task_running = False
+                    _task_running = False
                     callback(response="complete")
 
 def grunts_alive(grunts):
