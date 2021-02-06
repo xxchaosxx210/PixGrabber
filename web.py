@@ -11,14 +11,7 @@ def parse_html(thumbnail_only):
     pass
 
 def _test():
-    url = "http://vintage-erotica-forum.com/t18747-p87-milena-velba-cze.html"
-    r = requests.get(url, DEFAULT_USER_AGENT)
-    if TEXT_HTML in r.headers["Content-Type"]:
-        text = r.text
-        bs = BeautifulSoup(text)
-        links = bs.find_all("a")
-        for link in links:
-            print(link)
+    pass
 
 if __name__ == '__main__':
     _test()

@@ -4,6 +4,9 @@ import json
 import time
 import random
 
+from collections import namedtuple
+
+
 class Threads:
 
     commander = None
@@ -55,6 +58,7 @@ def commander_thread(callback):
     _task_running = False
     while not quit:
         try:
+            # Get the json object from the global queue
             msg = json.loads(Threads.commander_queue.get(0.5))
             th = msg["thread"]
             request = msg.get("request", None)
@@ -93,6 +97,9 @@ def commander_thread(callback):
                     callback(response="complete")
 
 def grunts_alive(grunts):
+    """
+    returns a list of grunt threads that are still alive
+    """
     return list(filter(lambda grunt : grunt.is_alive(), grunts))
     
 def _simulate_grunts(grunts):
@@ -105,5 +112,9 @@ def notify_commander(**kwargs):
     """
     send_message(object, **kwargs)
     FIFO queue puts a no wait message on the queue
+
+    msg
+        request - str The request type
+        thread  - str The calling thread
     """
     Threads.commander_queue.put_nowait(json.dumps(kwargs))
