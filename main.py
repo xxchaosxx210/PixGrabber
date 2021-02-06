@@ -54,11 +54,11 @@ class MainApp(MDApp):
             status = kwargs["status"]
             grunt_id = kwargs["threadid"]
             if status == "complete":
-                Logger.info(f"Thread #{grunt_id} has complete")
+                Logger.info(f"GRUNT: Thread #{grunt_id} has complete")
             elif status == "starting":
                 self.root.download_container.add_to_list(f"Thread #{grunt_id} has complete")
             elif status == "cancelled":
-                Logger.info(f"Thread #{grunt_id} has cancelled")
+                Logger.info(f"GRUNT: Thread #{grunt_id} has cancelled")
             
     
     def on_stop(self):

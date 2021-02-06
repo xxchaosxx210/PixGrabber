@@ -28,13 +28,20 @@ else:
 
 LOG_PATH = os.path.join(PATH, "log.txt")
 SETTINGS_PATH = os.path.join(PATH, "settings.json")
+DEFAULT_PICTURE_PATH = "Pictures"
 
 _file_lock = Lock()
 
 DEFAULT_SETTINGS = {
-                        "last_zoom_level": DEFAULT_ZOOM,
-                        "saved_coords": [],
-                        "app_version": VERSION}
+    "app_version": VERSION,
+    "browser_cookies": {"firefox": True},
+    "proxy": {"enable": False, "ip": "", "port": 0, "username": "", "password": ""},
+    "max_connections": 10,
+    "connection_timeout": 5,
+    "minimum_image_resolution": {"with": 200, "height": 200},
+    "thumbnail_search_only": True,
+    "save_path": os.path.join(PATH, DEFAULT_PICTURE_PATH)
+    }
 
 def load_Settings():
     """
