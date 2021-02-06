@@ -43,13 +43,13 @@ class MainApp(MDApp):
         elif response == "start":
             if kwargs["ok"]:
                 self.root.download_container.listbox.clear_widgets()
-                Logger.info("COMMANDER_RESPONSE: New job started")
+                Logger.info(f"COMMANDER_RESPONSE: {kwargs['message']}")
             else:
-                Logger.info("COMMANDER_RESPONSE: already on job")
-        elif response == "captain-quit":
-            Logger.info("COMMANDER_RESPONSE: captain thread has finished task")
+                Logger.info(f"COMMANDER_RESPONSE: {kwargs['message']}")
         elif response == "cancelled":
             Logger.info("COMMANDER_RESPONSE: Cancelling tasks...")
+        elif response == "complete":
+            Logger.info("COMMANDER_RESPONSE: All Tasks have completed")
         elif response == "grunt":
             status = kwargs["status"]
             grunt_id = kwargs["threadid"]

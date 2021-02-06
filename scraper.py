@@ -7,12 +7,11 @@ import random
 class Threads:
 
     commander = None
-    captain = None
     grunts = []
     commander_queue = queue.Queue()
-    captain_queue = queue.Queue()
     stdout_lock = threading.Lock()
     semaphore = threading.Semaphore(10)
+    cancel = threading.Event()
 
 def log_thread_safe(message):
     Threads.stdout_lock.acquire()
@@ -24,46 +23,27 @@ def create_commander(callback):
         target=commander_thread, kwargs={"callback": callback})
     return Threads.commander
 
-def grunt_thread(thread_id, cancel_event):
-    Threads.semaphore.acquire()
-    if not cancel_event.is_set():
-        notify_commander(thread="grunt", threadid=thread_id, status="starting")
-        for x in range(random.randint(1, 3)):
-            time.sleep(random.uniform(0.1, 0.5))
-            if cancel_event.is_set():
-                break
-    Threads.semaphore.release()
-    if cancel_event.is_set():
-        notify_commander(thread="grunt", threadid=thread_id, status="cancelled")
-    else:
-        notify_commander(thread="grunt", threadid=thread_id, status="complete")
 
+class Grunt(threading.Thread):
 
-def captain_thread(callback, location_path, cancel_event):
-    """
-    scrape first page and send out the grunt threads
-    """
-    Threads.grunts = []
-    for index in range(30):
-        grunt = threading.Thread(
-            target=grunt_thread,
-            kwargs={
-                "thread_id": index,
-                "cancel_event": cancel_event
-            }
-        )
-        Threads.grunts.append(grunt)
-        grunt.start()
-    for grunt in Threads.grunts:
-        while grunt.is_alive():
-            if cancel_event.is_set():
-                break
-        if cancel_event.is_set():
-            break
-    if cancel_event.is_set():
-        notify_commander(thread="captain", request="cancelled")
+    def __init__(self, thread_index, **kwargs):
+        super().__init__(**kwargs)
+        self.thread_index = thread_index
     
-    notify_commander(thread="captain", request="quit")
+    def run(self):
+        Threads.semaphore.acquire()
+        if not Threads.cancel.is_set():
+            notify_commander(thread="grunt", threadid=self.thread_index, status="starting")
+            for x in range(random.randint(1, 3)):
+                time.sleep(random.uniform(0.1, 0.5))
+                if Threads.cancel.is_set():
+                    break
+        Threads.semaphore.release()
+        if Threads.cancel.is_set():
+            notify_commander(thread="grunt", threadid=self.thread_index, status="cancelled")
+        else:
+            notify_commander(thread="grunt", threadid=self.thread_index, status="complete")
+
 
 def commander_thread(callback):
     """
@@ -71,7 +51,8 @@ def commander_thread(callback):
     and then passes onto captain_thread for parsing
     """
     quit = False
-    cancel_event = threading.Event()
+    grunts = []
+    task_running = False
     while not quit:
         try:
             msg = json.loads(Threads.commander_queue.get(0.5))
@@ -79,49 +60,57 @@ def commander_thread(callback):
             request = msg.get("request", None)
             if th == "main":
                 if request == "quit":
+                    Threads.cancel.set()
                     callback(response="quit")
                     quit = True
                 elif request == "start":
-                    # check if no jobs on
-                    # notify main thread
-                    if not Threads.captain:
-                        # Create one
-                        # clear cancel flag
-                        cancel_event.clear()
-                        Threads.captain = threading.Thread(
-                            target=captain_thread, 
-                            kwargs={
-                                "callback": callback,
-                                "location_path": msg["location_path"],
-                                "cancel_event": cancel_event
-                                })
-                        Threads.captain.start()
-                        callback(response="start", ok=True)
+                    if grunts:
+                        if not task_running:
+                            # start new threads
+                            callback(response="start", ok=True, message="Starting new Task")
+                            grunts = []
+                            _simulate_grunts(grunts)
+                            task_running = True
+                        else:
+                            callback(response="start", ok=False, message="Still working on current Task")
                     else:
-                        # check if still alive
-                        if Threads.captain.is_alive():
-                            callback(response="start", ok=False)
+                        # start new threads
+                        grunts = []
+                        _simulate_grunts(grunts)
+                        task_running = True
+
                 elif request == "cancel":
-                    cancel_event.set()
-            elif th == "captain":
-                if request == "quit":
-                    reset_captain(cancel_event)
-                    callback(response="captain-quit")
+                    Threads.cancel.set()
+
             elif th == "grunt":
-                callback(response="grunt", **msg)
+                status = msg["status"]
+                callback(response="grunt", status=status, threadid=msg["threadid"])
+
         except queue.Empty:
             pass
 
-def reset_captain(cancel_event):
-    cancel_event.clear()
-    Threads.captain = None
+        finally:
+            if task_running:
+                # check if all grunts are finished if so cleanup
+                # and notify main thread
+                if len(grunts_alive(grunts)) == 0:
+                    Threads.cancel.clear()
+                    grunts = []
+                    task_running = False
+                    callback(response="complete")
+
+def grunts_alive(grunts):
+    return list(filter(lambda grunt : grunt.is_alive(), grunts))
     
+def _simulate_grunts(grunts):
+    for x in range(50):
+        grunt = Grunt(x)
+        grunts.append(grunt)
+        grunt.start()
+
 def notify_commander(**kwargs):
     """
     send_message(object, **kwargs)
     FIFO queue puts a no wait message on the queue
     """
     Threads.commander_queue.put_nowait(json.dumps(kwargs))
-
-def notify_captain(**kwargs):
-    Threads.captain_queue.put_nowait(json.dumps(kwargs))

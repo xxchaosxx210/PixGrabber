@@ -7,6 +7,9 @@ DEFAULT_USER_AGENT = "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:8
 
 TEXT_HTML = "text/html"
 
+def parse_html(thumbnail_only):
+    pass
+
 def _test():
     url = "http://vintage-erotica-forum.com/t18747-p87-milena-velba-cze.html"
     r = requests.get(url, DEFAULT_USER_AGENT)
