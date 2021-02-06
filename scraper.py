@@ -94,6 +94,7 @@ def commander_thread(callback):
     quit = False
     grunts = []
     _task_running = False
+    callback(Message(thread="commander", type="message", data={"message": "reporting in Sir!!!"}))
     while not quit:
         try:
             # Get the json object from the global queue
@@ -103,14 +104,18 @@ def commander_thread(callback):
                     Threads.cancel.set()
                     callback(Message(thread="commander", type="quit"))
                     quit = True
-                elif r.type == "start":                
+                elif r.type == "fetch":                
                     if not _task_running:
                         grunts = []
                         _simulate_grunts(grunts)
+                        _message = Message(thread="commander", 
+                                           type="message", 
+                                           data={"message": f"There are {len(grunts)} Grunts being deployed sir"})
+                        callback(_message)
                         _task_running = True
-                        callback(Message(thread="commander", type="start", status="ok", data=r.data))
+                        callback(Message(thread="commander", type="fetch", status="ok", data=r.data))
                     else:
-                        callback(Message(thread="commander", type="start", status="still_running"))
+                        callback(Message(thread="commander", type="fetch", status="still_running"))
 
                 elif r.type == "cancel":
                     Threads.cancel.set()

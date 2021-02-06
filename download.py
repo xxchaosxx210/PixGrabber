@@ -73,12 +73,14 @@ Builder.load_string("""
         size_hint: 1, .3
         text: id_status_label.text
         id: id_statusbox
+        scrollview: id_scrollview
         ScrollView:
             scroll_type: ["bars"]
             bar_width: "20dp"
+            id: id_scrollview
             MDLabel:
-                size_hint: None, None
-                size: self.texture_size
+                size_hint_y: None
+                height: self.texture_size[1]
                 text: root.statusbox.text
                 id: id_status_label
 """)
@@ -86,6 +88,7 @@ Builder.load_string("""
 class StatusBox(MDBoxLayout):
 
     text = StringProperty("")
+    scrollview = ObjectProperty(None)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -111,7 +114,7 @@ class DownloadBoxContainer(MDBoxLayout):
 
     def on_fetch_button(self):
         data = {"url": "http://vintage-erotica-forum.com/t18747-p79-milena-velba-cze.html"}
-        notify_commander(Message(thread="main", type="start", data=data))
+        notify_commander(Message(thread="main", type="fetch", data=data))
     
     def on_cancel_button(self):
         notify_commander(Message(thread="main", type="cancel"))

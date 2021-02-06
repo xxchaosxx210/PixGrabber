@@ -22,15 +22,12 @@ class MainContainer(MDBoxLayout):
 
 class MainApp(MDApp):
     
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def on_start(self):
         # create global thread for handling web requests and worker threads
         commander = create_commander(self.message_from_handler)
-        commander.start()
-    
-    def on_start(self):
         # start the handler thread this will stay looping for the remainder
         # of the app lifecycle
+        commander.start()
         super().on_start()
     
     @mainthread
@@ -43,7 +40,11 @@ class MainApp(MDApp):
                 self.root.download_container.statusbox.update(
                         "COMMANDER",
                         "I have quit")
-            elif msg.type == "start":
+            elif msg.type == "message":
+                self.root.download_container.statusbox.update(
+                        "COMMANDER",
+                        msg.data["message"])
+            elif msg.type == "fetch":
                 if msg.status == "ok":
                     self.root.download_container.listbox.clear_widgets()
                     self.root.download_container.statusbox.update(
@@ -65,17 +66,11 @@ class MainApp(MDApp):
         elif msg.thread == "grunt":
             if msg.type == "finished":
                 if msg.status == "complete":
-                    self.root.download_container.statusbox.update(
-                        f"GRUNT#{msg.id}",
-                        "has completed")
+                    Logger.info(f"GRUNT#{msg.id}: has completed")
                 elif msg.status == "cancelled":
-                    self.root.download_container.statusbox.update(
-                        f"GRUNT#{msg.id}",
-                        "has cancelled")
+                    Logger.info(f"GRUNT#{msg.id}: has cancelled")
             elif msg.type == "started":
-                self.root.download_container.statusbox.update(
-                        f"GRUNT#{msg.id}",
-                        "has started")
+                Logger.info(f"GRUNT#{msg.id}: has started...")
                 
             
     
