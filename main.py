@@ -1,13 +1,19 @@
 from kivymd.app import MDApp
 from kivymd.uix.boxlayout import MDBoxLayout
 
+from kivy.clock import mainthread
+
 from kivy.properties import (
     ObjectProperty
 )
 
-from scraper import Handler
+from scraper import (
+    create_commander,
+    Threads,
+    notify_commander
+)
 
-from debug import Debug
+from kivy.logger import Logger
 
 class MainContainer(MDBoxLayout):
 
@@ -18,26 +24,36 @@ class MainApp(MDApp):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         # create global thread for handling web requests and worker threads
-        Handler.thread = Handler(self.message_from_handler)
+        commander = create_commander(self.message_from_handler)
+        commander.start()
     
     def on_start(self):
         # start the handler thread this will stay looping for the remainder
         # of the app lifecycle
-        Handler.thread.start()
+        super().on_start()
     
-    def message_from_handler(self, response, **kwargs):
+    @mainthread
+    def message_from_handler(self, **kwargs):
         """
         function callback from the main handler thread
         """
-        if response == "start-thread":
-            Debug.log("HANDLER_THREAD", self, thread_start=True)
-        elif response == "quit":
-            Debug.log("HANDLER_THREAD", self, quit=True)
+        response = kwargs["response"]
+        if response == "quit":
+            Logger.info("COMMANDER_RESPONSE: I have quit")
+        elif response == "start":
+            if kwargs["ok"]:
+                Logger.info("COMMANDER_RESPONSE: New job started")
+            else:
+                Logger.info("COMMANDER_RESPONSE: already on job")
+        elif response == "captain-quit":
+            Logger.info("COMMANDER_RESPONSE: captain thread has finished task")
+        elif response == "cancelled":
+            Logger.info("COMMANDER_RESPONSE: Cancelling tasks...")
     
     def on_stop(self):
-        if Handler.thread.is_alive():
-            Handler.thread.send_message(request="quit")
-            Handler.thread.join()
+        if Threads.commander.is_alive():
+            notify_commander(thread="main", request="quit")
+            Threads.commander.join()
         return super().on_stop()
 
 def main():

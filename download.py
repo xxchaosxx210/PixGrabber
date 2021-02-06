@@ -1,12 +1,18 @@
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivy.lang import Builder
-from scraper import Handler
+from scraper import (
+    Threads,
+    notify_commander
+)
 
 from kivymd.uix.list import (
     OneLineAvatarIconListItem
 )
 
-from kivy.properties import ObjectProperty
+from kivy.properties import (
+    ObjectProperty,
+    StringProperty
+)
 
 Builder.load_string("""
 <HorizontalSpacer@Widget>:
@@ -21,6 +27,7 @@ Builder.load_string("""
     orientation: "vertical"
     listbox: id_listbox
     app: app
+    path_textfield: id_path.text
 
     MDFloatLayout:
         size_hint: 1, .1
@@ -31,6 +38,8 @@ Builder.load_string("""
             height: dp(48)
             mode: "rectangle"
             hint_text: "Url"
+            id: id_path
+            text: root.path_textfield
         MDFloatingActionButton:
             pos_hint: {"top": 1, "left": 0, "right": .8}
             icon: "stop"
@@ -71,16 +80,20 @@ class UrlListItem(OneLineAvatarIconListItem):
 class DownloadBoxContainer(MDBoxLayout):
 
     listbox = ObjectProperty(None)
+    path_textfield = ObjectProperty("")
     app = ObjectProperty(None)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
     def on_fetch_button(self):
-        self.load_list(["http://www.google.com"] * 50)
+        notify_commander(
+            thread="main",
+            request="start", 
+            location_path="http://www.somewhere.com")
     
     def on_cancel_button(self):
-        Handler.thread.send_message(request="quit")
+        notify_commander(thread="main", request="cancel")
 
     def load_list(self, links):
         self.listbox.clear_widgets()
