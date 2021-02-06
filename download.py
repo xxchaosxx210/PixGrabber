@@ -2,7 +2,8 @@ from kivymd.uix.boxlayout import MDBoxLayout
 from kivy.lang import Builder
 from scraper import (
     Threads,
-    notify_commander
+    notify_commander,
+    Message
 )
 
 from kivymd.uix.list import (
@@ -83,13 +84,10 @@ class DownloadBoxContainer(MDBoxLayout):
         super().__init__(**kwargs)
 
     def on_fetch_button(self):
-        notify_commander(
-            thread="main",
-            request="start", 
-            location_path="http://www.somewhere.com")
+        notify_commander(Message(thread="main", type="start"))
     
     def on_cancel_button(self):
-        notify_commander(thread="main", request="cancel")
+        notify_commander(Message(thread="main", type="cancel"))
 
     def load_list(self, links):
         self.listbox.clear_widgets()

@@ -4,8 +4,15 @@ import json
 import time
 import random
 
-from collections import namedtuple
+from dataclasses import dataclass
 
+@dataclass
+class Message:
+
+    type: str
+    thread: str
+    id: int = 0
+    status: str = ""
 
 class Threads:
 
@@ -36,16 +43,16 @@ class Grunt(threading.Thread):
     def run(self):
         Threads.semaphore.acquire()
         if not Threads.cancel.is_set():
-            notify_commander(thread="grunt", threadid=self.thread_index, status="starting")
+            notify_commander(Message(id=self.thread_index, thread="grunt", type="started", status="ok"))
             for x in range(random.randint(1, 3)):
                 time.sleep(random.uniform(0.1, 0.5))
                 if Threads.cancel.is_set():
                     break
         Threads.semaphore.release()
         if Threads.cancel.is_set():
-            notify_commander(thread="grunt", threadid=self.thread_index, status="cancelled")
+            notify_commander(Message(id=self.thread_index, thread="grunt", status="cancelled", type="finished"))
         else:
-            notify_commander(thread="grunt", threadid=self.thread_index, status="complete")
+            notify_commander(Message(id=self.thread_index, thread="grunt", status="complete", type="finished"))
 
 
 def commander_thread(callback):
@@ -59,29 +66,26 @@ def commander_thread(callback):
     while not quit:
         try:
             # Get the json object from the global queue
-            msg = json.loads(Threads.commander_queue.get(0.5))
-            th = msg["thread"]
-            request = msg.get("request", None)
-            if th == "main":
-                if request == "quit":
+            r = Threads.commander_queue.get(0.5)
+            if r.thread == "main":
+                if r.type == "quit":
                     Threads.cancel.set()
-                    callback(response="quit")
+                    callback(Message(thread="commander", type="quit"))
                     quit = True
-                elif request == "start":                
+                elif r.type == "start":                
                     if not _task_running:
                         grunts = []
                         _simulate_grunts(grunts)
                         _task_running = True
-                        callback(response="start", ok=True, message="Starting new Task")
+                        callback(Message(thread="commander", type="start", status="ok"))
                     else:
-                        callback(response="start", ok=False, message="Still working on current Task")
+                        callback(Message(thread="commander", type="start", status="still_running"))
 
-                elif request == "cancel":
+                elif r.type == "cancel":
                     Threads.cancel.set()
 
-            elif th == "grunt":
-                status = msg["status"]
-                callback(response="grunt", status=status, threadid=msg["threadid"])
+            elif r.thread == "grunt":
+                callback(r)
 
         except queue.Empty:
             pass
@@ -94,7 +98,7 @@ def commander_thread(callback):
                     Threads.cancel.clear()
                     grunts = []
                     _task_running = False
-                    callback(response="complete")
+                    callback(Message(thread="commander", type="complete"))
 
 def grunts_alive(grunts):
     """
@@ -108,13 +112,11 @@ def _simulate_grunts(grunts):
         grunts.append(grunt)
         grunt.start()
 
-def notify_commander(**kwargs):
+def notify_commander(r):
     """
-    send_message(object, **kwargs)
+    send_message(object)
     FIFO queue puts a no wait message on the queue
 
-    msg
-        request - str The request type
-        thread  - str The calling thread
+    r - Request namedtuple
     """
-    Threads.commander_queue.put_nowait(json.dumps(kwargs))
+    Threads.commander_queue.put_nowait(r)
