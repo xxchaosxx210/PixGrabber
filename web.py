@@ -7,7 +7,7 @@ DEFAULT_USER_AGENT = "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:8
 
 TEXT_HTML = "text/html"
 
-def parse_html(thumbnail_only):
+def parse_html():
     pass
 
 def _test():

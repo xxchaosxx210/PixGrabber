@@ -84,7 +84,8 @@ class DownloadBoxContainer(MDBoxLayout):
         super().__init__(**kwargs)
 
     def on_fetch_button(self):
-        notify_commander(Message(thread="main", type="start"))
+        data = {"url": "http://vintage-erotica-forum.com/t18747-p79-milena-velba-cze.html"}
+        notify_commander(Message(thread="main", type="start", data=data))
     
     def on_cancel_button(self):
         notify_commander(Message(thread="main", type="cancel"))

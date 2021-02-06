@@ -44,7 +44,7 @@ class MainApp(MDApp):
             elif msg.type == "start":
                 if msg.status == "ok":
                     self.root.download_container.listbox.clear_widgets()
-                    Logger.info("COMMANDER_RESPONSE: Started tasks...")
+                    Logger.info(f"COMMANDER_RESPONSE: Fetching {msg.data['url']} ...")
                 else:
                     Logger.info("COMMANDER_RESPONSE: Task already running")
             elif msg.type == "cancelled":

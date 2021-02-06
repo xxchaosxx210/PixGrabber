@@ -6,6 +6,8 @@ import random
 
 from dataclasses import dataclass
 
+import web
+
 @dataclass
 class Message:
     """
@@ -14,12 +16,14 @@ class Message:
     type   - the type of message
     id     - the thread index
     status - the types status
+    data   - extra data
     """
 
     type: str
     thread: str
     id: int = 0
     status: str = ""
+    data: dict = None
 
 class Threads:
 
@@ -104,7 +108,7 @@ def commander_thread(callback):
                         grunts = []
                         _simulate_grunts(grunts)
                         _task_running = True
-                        callback(Message(thread="commander", type="start", status="ok"))
+                        callback(Message(thread="commander", type="start", status="ok", data=r.data))
                     else:
                         callback(Message(thread="commander", type="start", status="still_running"))
 
