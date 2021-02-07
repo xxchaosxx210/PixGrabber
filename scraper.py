@@ -90,14 +90,14 @@ class Grunt(threading.Thread):
     Level 2 HTML parser and image finder thread
     """
 
-    def __init__(self, thread_index, **kwargs):
+    def __init__(self, thread_index, url, **kwargs):
         super().__init__(**kwargs)
         self.thread_index = thread_index
+        self.url = url
     
     def run(self):
         Threads.semaphore.acquire()
         if not Threads.cancel.is_set():
-            #cj = web.browser_cookie3.firefox()
             pass
         Threads.semaphore.release()
         if Threads.cancel.is_set():
@@ -129,6 +129,12 @@ def commander_thread(callback):
                     Threads.cancel.set()
                     callback(Message(thread="commander", type="quit"))
                     quit = True
+                elif r.type == "start":
+                    if not _task_running:
+                        grunts = []
+                        _task_running = True
+                        for thread_index, url in enumerate(r.data["urls"]):
+                            grunts.append(Grunt(thread_index, url))
                 elif r.type == "fetch":                
                     if not _task_running:
                         callback(MessageMain(data={"message": "Initializing the global search filter..."}))

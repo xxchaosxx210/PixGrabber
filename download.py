@@ -33,10 +33,6 @@ Builder.load_string("""
     path_textfield: id_path.text
     statusbox: id_statusbox
 
-    fetch_button: id_fetch_button
-    cancel_button: id_cancel_button
-    start_button: id_start_button
-
     VerticalSpacer:
 
     MDBoxLayout:
@@ -67,14 +63,13 @@ Builder.load_string("""
             elevation: 8
             md_bg_color: 30/255, 144/255, 255/255, 1
             on_release: root.on_cancel_button()
-            disabled: True
         MDFloatingActionButton:
+            on_release: root.on_start_button()
             id: id_start_button
             icon: "download"
             opposite_colors: True
             elevation: 8
             md_bg_color: 30/255, 144/255, 255/255, 1
-            disabled: True
         HorizontalSpacer:
     VerticalSpacer:
     ScrollView:
@@ -136,13 +131,13 @@ class DownloadBoxContainer(MDBoxLayout):
     app = ObjectProperty(None)
     statusbox = ObjectProperty(None)
 
-    # Buttons
-    fetch_button = ObjectProperty(None)
-    cancel_button = ObjectProperty(None)
-    start_button = ObjectProperty(None)
-
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+    
+    def on_start_button(self, *args):
+        urls = list(map(lambda listitem : listitem.text, self.listbox.children))
+        data = {"urls": urls}
+        notify_commander(Message(thread="main", type="start", data=data))
 
     def on_fetch_button(self, *args):
         data = {"url": "http://vintage-erotica-forum.com/t18747-p90-milena-velba-cze.html"}
