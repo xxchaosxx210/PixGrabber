@@ -59,6 +59,7 @@ def is_valid_content_type(url, content_type, valid_types):
 def _appendlink(full_url, src, urllist):
     if src:
         url = parse.urljoin(full_url, src)
+        # Filter the URL
         if Globals.regex_filter.search(url):
             # make sure we dont have a duplicate
             # exception ValueError raised if no url found so add it to list
