@@ -18,7 +18,6 @@ class Message:
     status - the types status
     data   - extra data
     """
-
     type: str
     thread: str
     id: int = 0

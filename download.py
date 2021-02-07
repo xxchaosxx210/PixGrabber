@@ -1,5 +1,6 @@
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivy.lang import Builder
+
 from scraper import (
     Threads,
     notify_commander,
@@ -74,10 +75,12 @@ Builder.load_string("""
         text: id_status_label.text
         id: id_statusbox
         scrollview: id_scrollview
+        label: id_status_label
         ScrollView:
             scroll_type: ["bars"]
             bar_width: "20dp"
             id: id_scrollview
+            scroll_y: 0
             MDLabel:
                 size_hint_y: None
                 height: self.texture_size[1]
@@ -85,9 +88,11 @@ Builder.load_string("""
                 id: id_status_label
 """)
 
+
 class StatusBox(MDBoxLayout):
 
     text = StringProperty("")
+    label = ObjectProperty(None)
     scrollview = ObjectProperty(None)
 
     def __init__(self, **kwargs):
@@ -95,6 +100,9 @@ class StatusBox(MDBoxLayout):
     
     def update(self, name, text):
         self.text += f"[{name}]: {text}\n "
+    
+    def clear(self):
+        self.text = ""
 
 
 class UrlListItem(OneLineAvatarIconListItem):

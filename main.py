@@ -16,6 +16,7 @@ from scraper import (
 
 from kivy.logger import Logger
 
+
 class MainContainer(MDBoxLayout):
 
     download_container = ObjectProperty(None)
@@ -47,6 +48,7 @@ class MainApp(MDApp):
                         msg.data["message"])
             elif msg.type == "fetch":
                 if msg.status == "ok":
+                    self.root.download_container.statusbox.clear()
                     self.root.download_container.listbox.clear_widgets()
                     self.root.download_container.statusbox.update(
                         "COMMANDER",
@@ -67,14 +69,14 @@ class MainApp(MDApp):
         elif msg.thread == "grunt":
             if msg.type == "finished":
                 if msg.status == "complete":
-                    Logger.info(f"GRUNT#{msg.id}: has completed")
+                    self.root.download_container.statusbox.update(
+                        f"GRUNT#{msg.id}",
+                        "has completed")
                 elif msg.status == "cancelled":
                     Logger.info(f"GRUNT#{msg.id}: has cancelled")
             elif msg.type == "started":
                 Logger.info(f"GRUNT#{msg.id}: has started...")
                 
-            
-    
     def on_stop(self):
         if Threads.commander.is_alive():
             notify_commander(Message(thread="main", type="quit"))

@@ -1,11 +1,51 @@
 import requests
 from bs4 import BeautifulSoup
 import browser_cookie3
-import mimetypes
+import os
+from urllib import (
+    parse
+)
+
+from debug import Debug
 
 DEFAULT_USER_AGENT = "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:85.0) Gecko/20100101 Firefox/85.0"
 
 TEXT_HTML = "text/html"
+
+def is_valid_content_type(url, content_type, valid_types):
+    """
+    is_valid_content_type(str, str, list)
+    checks if mimetype is an image and matches valid images
+    url           - the url of the content-type
+    content_type  - is a string found in the headers['Content-Type'] dict
+    valid_types   - a list containing valid files for searching
+    returns an empty string if not valid or a file extension related to the file type
+    will always return a valid file extension if html document
+    """
+    ext = ""
+    if 'text/html' in content_type:
+        ext = ".html"
+    elif content_type == 'image/gif':
+        ext = ".gif"
+    elif content_type == 'image/png':
+        ext = ".png"
+    elif content_type == 'image/ico':
+        ext = ".ico"
+    elif content_type == 'image/jpeg':
+        ext = ".jpg"
+    elif content_type == 'image/tiff':
+        ext = ".tiff"
+    elif content_type == 'image/tga':
+        ext = ".tga"
+    elif content_type == 'image/bmp':
+        ext = ".bmp"
+    elif content_type == 'application/octet-stream':
+        # file attachemnt use the extension from the url
+        try:
+            ext = os.path.splitext(url)[1]
+        except IndexError as err:
+            Debug.log(f"is_valid_content_type web.py", err, error=err.__str__(), url=url, content_type=content_type)
+    return ext
 
 def parse_html(html, thumbnail_only=True, level=1):
     """
@@ -24,7 +64,7 @@ def parse_html(html, thumbnail_only=True, level=1):
                     found_list.append(anchor.get("href"))
         else:
             for anchor in anchors:
-                found_list.append(anchor.href)
+                found_list.append(anchor.get("href"))
     else:
         imgs = soup.find_all("img")
         for img in imgs:
@@ -32,7 +72,19 @@ def parse_html(html, thumbnail_only=True, level=1):
     return found_list
 
 def _test():
-    print(parse_html(open("debug.html", "r").read()))
+    url = "https://icatcare.org/app/uploads/2018/07/Thinking-of-getting-a-cat.png"
+    r = requests.get(url)
+    print(is_valid_content_type(url, r.headers["Content-Type"], None))
+    import time
+    for x in range(10, 0, -1):
+        print(f"File will download in less than {x} minutes")
+        time.sleep(60)
+    fp = open("cat.png", "wb")
+    for buff in r.iter_content(1000):
+        fp.write(buff)
+    print("Done")
+    fp.close()
+    r.close()
 
 if __name__ == '__main__':
     _test()
