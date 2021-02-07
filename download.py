@@ -19,11 +19,12 @@ from kivy.properties import (
 Builder.load_string("""
 <HorizontalSpacer@Widget>:
     size_hint: None, 1
-    width: dp(48)
+    width: dp(10)
 
 <VerticalSpacer@Widget>:
     size_hint: 1, None
-    height: dp(48)
+    height: "30dp"
+
 <DownloadBoxContainer>:
     size_hint: 1, 1
     orientation: "vertical"
@@ -32,31 +33,49 @@ Builder.load_string("""
     path_textfield: id_path.text
     statusbox: id_statusbox
 
-    MDFloatLayout:
+    fetch_button: id_fetch_button
+    cancel_button: id_cancel_button
+    start_button: id_start_button
+
+    VerticalSpacer:
+
+    MDBoxLayout:
         size_hint: 1, .1
         orientation: "horizontal"
+        spacing: "10dp"
+
+        HorizontalSpacer:
         MDTextField:
-            pos_hint: {"left": 1, "top": 1}
             size_hint: .9, None
             height: dp(48)
             mode: "rectangle"
             hint_text: "Url"
             id: id_path
             text: root.path_textfield
+        HorizontalSpacer:
         MDFloatingActionButton:
-            pos_hint: {"top": 1, "left": 0, "right": .8}
+            id: id_fetch_button
+            icon: "image-search"
+            opposite_colors: True
+            elevation: 8
+            md_bg_color: 0, 136/255, 204/255, 1
+            on_release: root.on_fetch_button()
+        MDFloatingActionButton:
+            id: id_cancel_button
             icon: "stop"
             opposite_colors: True
             elevation: 8
             md_bg_color: 30/255, 144/255, 255/255, 1
             on_release: root.on_cancel_button()
+            disabled: True
         MDFloatingActionButton:
-            pos_hint: {"top": 1, "left": 0, "right": 1}
+            id: id_start_button
             icon: "download"
             opposite_colors: True
             elevation: 8
             md_bg_color: 30/255, 144/255, 255/255, 1
-            on_release: root.on_fetch_button()
+            disabled: True
+        HorizontalSpacer:
     VerticalSpacer:
     ScrollView:
         scroll_type: ["bars"]
@@ -117,14 +136,19 @@ class DownloadBoxContainer(MDBoxLayout):
     app = ObjectProperty(None)
     statusbox = ObjectProperty(None)
 
+    # Buttons
+    fetch_button = ObjectProperty(None)
+    cancel_button = ObjectProperty(None)
+    start_button = ObjectProperty(None)
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def on_fetch_button(self):
+    def on_fetch_button(self, *args):
         data = {"url": "http://vintage-erotica-forum.com/t18747-p90-milena-velba-cze.html"}
         notify_commander(Message(thread="main", type="fetch", data=data))
     
-    def on_cancel_button(self):
+    def on_cancel_button(self, *args):
         notify_commander(Message(thread="main", type="cancel"))
 
     def load_list(self, links):
