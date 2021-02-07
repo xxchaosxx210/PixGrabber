@@ -15,6 +15,8 @@ TEXT_HTML = "text/html"
 
 FILTER_SEARCH = ["imagevenue.com/", "imagebam.com/", "pixhost.to/"]
 
+_image_ext_pattern = re.compile('.jpg|.png|.tiff|.gif|.bmp|.jpeg')
+
 class Globals:
     regex_filter = None
 
@@ -92,21 +94,27 @@ def parse_html(url, html, thumbnail_only=True, level=1):
         imgs = soup.find_all("img")
         for img in imgs:
             _appendlink(url, img.get("src"), found_list)
+        # find the meta data
+        for meta in soup.find_all("meta", content=_image_ext_pattern):
+            _appendlink(url, meta.get("content"), found_list)
     return found_list
 
 def _test():
-    url = "https://icatcare.org/app/uploads/2018/07/Thinking-of-getting-a-cat.png"
-    r = requests.get(url)
-    print(is_valid_content_type(url, r.headers["Content-Type"], None))
-    import time
-    for x in range(10, 0, -1):
-        print(f"File will download in less than {x} minutes")
-        time.sleep(60)
-    fp = open("cat.png", "wb")
-    for buff in r.iter_content(1000):
-        fp.write(buff)
-    print("Done")
-    fp.close()
+    compile_regex_global_filter()
+    cj = browser_cookie3.firefox()
+    url = "http://www.imagebam.com/image/7382191329586630"
+    r = requests.get(url, cookies=cj)
+    print(parse_html(url, r.text, True, 2))
+    r.close()
+    # print(is_valid_content_type(url, r.headers["Content-Type"], None))
+    # import time
+    # for x in range(10, 0, -1):
+    #     print(f"File will download in less than {x} minutes")
+    #     time.sleep(60)
+    # fp = open("cat.png", "wb")
+    # for buff in r.iter_content(1000):
+    #     fp.write(buff)
+    # print("Done")
     r.close()
 
 if __name__ == '__main__':
