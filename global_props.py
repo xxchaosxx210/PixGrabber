@@ -42,7 +42,6 @@ DEFAULT_SETTINGS = {
     "thumbnail_search_only": True,
     "save_path": os.path.join(PATH, DEFAULT_PICTURE_PATH),
     "filter_search": {
-        "enabled": True,
         "filters": []}
     }
 

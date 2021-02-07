@@ -85,7 +85,6 @@ def create_commander(callback):
         target=commander_thread, kwargs={"callback": callback})
     return Threads.commander
 
-
 class Grunt(threading.Thread):
 
     """
@@ -131,14 +130,15 @@ def commander_thread(callback):
                     quit = True
                 elif r.type == "fetch":                
                     if not _task_running:
-                        grunts = []
+                        # compile our filter matches only add those from the filter list
+                        web.compile_regex_global_filter()
                         # get the document from the URL
                         webreq = request_from_url(r.data["url"])
                         # make sure is a text document to parse
                         ext = web.is_valid_content_type(r.data["url"], webreq.headers["Content-type"], None)
                         if ext == ".html":
                             # scrape links and images from document
-                            scanned_urls = web.parse_html(webreq.text)
+                            scanned_urls = web.parse_html(r.data["url"], webreq.text)
                             # send the scanned urls to the main thread for processing
                             data = {"urls": scanned_urls}
                             reqmsg = Message(thread="commander", type="fetch", status="finished", data=data)
@@ -153,8 +153,8 @@ def commander_thread(callback):
             elif r.thread == "grunt":
                 callback(r)
 
-        except queue.Empty:
-            pass
+        except queue.Empty as err:
+            print(f"Queue error: {err.__str__()}")
 
         finally:
             if _task_running:
