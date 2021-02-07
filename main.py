@@ -55,6 +55,12 @@ class MainApp(MDApp):
                 self.root.download_container.statusbox.update(
                         "COMMANDER",
                         "Cancelling Tasks...")
+            elif msg.type == "complete":
+                self.root.download_container.statusbox.update(
+                    "COMMANDER",
+                    "Task complete"
+                )
+                self.root.download_container.listbox.clear_widgets()
         elif msg.thread == "grunt":
             if msg.type == "finished":
                 if msg.status == "complete":

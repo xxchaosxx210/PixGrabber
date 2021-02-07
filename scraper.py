@@ -4,6 +4,9 @@ import json
 import time
 import random
 import functools
+import os
+from io import BytesIO
+from PIL import Image
 
 from dataclasses import dataclass
 
@@ -48,21 +51,49 @@ class Urls:
     lock = threading.Lock()
 
     @staticmethod
+    def clear():
+        Urls.lock.acquire()
+        Urls.links.clear()
+        Urls.lock.release()
+
+    @staticmethod
     def add_url(url):
         Urls.lock.acquire()
         Urls.links.append(url)
         Urls.lock.release()
     
     @staticmethod
-    def is_url_exist(url):
+    def url_exists(url):
         Urls.lock.acquire()
-        index = Urls.links.index(url)
-        Urls.lock.release()
-        return index > 0
+        try:
+            index = Urls.links.index(url)
+        except ValueError:
+            index = -1
+        finally:
+            Urls.lock.release()
+        return index >= 0
+
+
+class ImageFile:
+
+    file_lock = threading.Lock()
+
+    @staticmethod
+    def write_to_file(path, filename, bytes_stream):
+        ImageFile.file_lock.acquire()
+        if not os.path.exists(path):
+            os.mkdir(path)
+        with open(os.path.join(path, filename), "wb") as fp:
+            fp.write(bytes_stream.getbuffer())
+            fp.close()
+        ImageFile.file_lock.release()
+
 
 def request_from_url(url):
     cj = web.browser_cookie3.firefox()
-    r = web.requests.get(url, cookies=cj)
+    r = web.requests.get(url, 
+                        cookies=cj, 
+                        headers={"User-Agent": web.FIREFOX_USER_AGENT})
     return r
 
 def log_thread_safe(message):
@@ -84,6 +115,23 @@ def create_commander(callback):
         target=commander_thread, kwargs={"callback": callback})
     return Threads.commander
 
+def download_image(path, filename, response):
+    # read from socket
+    # store in memory
+    # images shouldnt be too large
+    byte_stream = BytesIO()
+    for buff in response.iter_content(1000):
+        byte_stream.write(buff)
+    # load image from buffer io
+    image = Image.open(byte_stream)
+    width, height = image.size
+    # if image requirements met then save
+    if width > 200 and height > 200:
+        ImageFile.write_to_file(path, filename, byte_stream)
+    byte_stream.close()        
+    image.close()
+
+
 class Grunt(threading.Thread):
 
     """
@@ -96,14 +144,50 @@ class Grunt(threading.Thread):
         self.url = url
     
     def run(self):
+        GruntMessage = functools.partial(Message, id=self.thread_index, thread="grunt")
         Threads.semaphore.acquire()
         if not Threads.cancel.is_set():
-            pass
+            notify_commander(GruntMessage(status="ok", type="scanning"))
+            # request the url
+            r = request_from_url(self.url)
+            ext = web.is_valid_content_type(self.url, r.headers.get("Content-Type"), None)
+            if ".html" == ext:
+                imgs = []
+                # parse the document and search for images only
+                if web.parse_html(self.url, r.text, imgs, images_only=True, thumbnails_only=False) > 0:
+                    r.close()
+
+                    for index, imgurl in enumerate(imgs):
+                        # check if url has already in global list
+                        if not Urls.url_exists(imgurl):
+                            # its ok then add it to the global list
+                            Urls.add_url(imgurl)
+                            # download each one and save it
+                            imgresp = request_from_url(imgurl)
+                            # check the content-type matches and image
+                            ext = web.is_valid_content_type(imgurl, imgresp.headers.get("Content-Type"), None)
+                            if ext in web.IMAGE_EXTS:
+                                # if image then create a file path and check
+                                # the image resolution size matches
+                                # if it does then save to file
+                                path = os.path.join(os.getcwd(), "test")
+                                filename = f"test{self.thread_index}_{index}{ext}"
+                                download_image(path, filename, imgresp)
+                            # close the image request handle
+                            imgresp.close()
+            else:
+                if ext in web.IMAGE_EXTS:
+                    if not Urls.url_exists(self.url):
+                        Urls.add_url(self.url)
+                        path = os.path.join(os.getcwd(), "test")
+                        filename = f"test{self.thread_index}{ext}"
+                        download_image(path, filename, r)
+                r.close()
         Threads.semaphore.release()
         if Threads.cancel.is_set():
-            notify_commander(Message(id=self.thread_index, thread="grunt", status="cancelled", type="finished"))
+            notify_commander(GruntMessage(status="cancelled", type="finished"))
         else:
-            notify_commander(Message(id=self.thread_index, thread="grunt", status="complete", type="finished"))
+            notify_commander(GruntMessage(status="complete", type="finished"))
 
 
 def commander_thread(callback):
@@ -133,8 +217,13 @@ def commander_thread(callback):
                     if not _task_running:
                         grunts = []
                         _task_running = True
+
+                        callback(MessageMain(data={"message": "Starting Threads..."}))
                         for thread_index, url in enumerate(r.data["urls"]):
                             grunts.append(Grunt(thread_index, url))
+                        for _grunt in grunts:
+                            _grunt.start()
+
                 elif r.type == "fetch":                
                     if not _task_running:
                         callback(MessageMain(data={"message": "Initializing the global search filter..."}))
@@ -183,6 +272,7 @@ def commander_thread(callback):
                     Threads.cancel.clear()
                     grunts = []
                     _task_running = False
+                    Urls.clear()
                     callback(Message(thread="commander", type="complete"))
 
 def grunts_alive(grunts):

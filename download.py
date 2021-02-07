@@ -136,12 +136,14 @@ class DownloadBoxContainer(MDBoxLayout):
     
     def on_start_button(self, *args):
         urls = list(map(lambda listitem : listitem.text, self.listbox.children))
+        urls.reverse()
         data = {"urls": urls}
         notify_commander(Message(thread="main", type="start", data=data))
 
     def on_fetch_button(self, *args):
-        data = {"url": "http://vintage-erotica-forum.com/t18747-p90-milena-velba-cze.html"}
-        notify_commander(Message(thread="main", type="fetch", data=data))
+        if self.path_textfield:
+            data = {"url": self.path_textfield}
+            notify_commander(Message(thread="main", type="fetch", data=data))
     
     def on_cancel_button(self, *args):
         notify_commander(Message(thread="main", type="cancel"))

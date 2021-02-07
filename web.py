@@ -11,7 +11,7 @@ from urllib import (
 
 from debug import Debug
 
-DEFAULT_USER_AGENT = "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:85.0) Gecko/20100101 Firefox/85.0"
+FIREFOX_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:85.0) Gecko/20100101 Firefox/85.0"
 
 FILTER_SEARCH = ["imagevenue.com/", "imagebam.com/", "pixhost.to/"]
 
@@ -97,7 +97,7 @@ def parse_html( url,
     soup = BeautifulSoup(html, features="html.parser")
 
     if not images_only:
-        # search for links on document too
+        # search for links on document
         atags = soup.find_all("a")
         for atag in atags:
             if thumbnails_only:
