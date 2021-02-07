@@ -3,6 +3,7 @@ import queue
 import json
 import time
 import random
+import functools
 
 from dataclasses import dataclass
 
@@ -29,7 +30,6 @@ class Threads:
     """
     static class holding global scope variables
     """
-
     commander = None
     grunts = []
     commander_queue = queue.Queue()
@@ -46,7 +46,6 @@ class Urls:
 
     links = []
     lock = threading.Lock()
-    images = []
 
     @staticmethod
     def add_url(url):
@@ -118,7 +117,9 @@ def commander_thread(callback):
     quit = False
     grunts = []
     _task_running = False
-    callback(Message(thread="commander", type="message", data={"message": "reporting in Sir!!!"}))
+    callback(Message(thread="commander", type="message", data={"message": "Commander thread has loaded. Waiting to scan"}))
+    # stops code getting to long verbose
+    MessageMain = functools.partial(Message, thread="commander", type="message")
     while not quit:
         try:
             # Get the json object from the global queue
@@ -130,22 +131,34 @@ def commander_thread(callback):
                     quit = True
                 elif r.type == "fetch":                
                     if not _task_running:
+                        callback(MessageMain(data={"message": "Initializing the global search filter..."}))
                         # compile our filter matches only add those from the filter list
                         web.compile_regex_global_filter()
                         # get the document from the URL
+                        callback(MessageMain(data={"message": f"Connecting to {r.data['url']}"}))
                         webreq = request_from_url(r.data["url"])
                         # make sure is a text document to parse
                         ext = web.is_valid_content_type(r.data["url"], webreq.headers["Content-type"], None)
                         if ext == ".html":
+                            callback(MessageMain(data={"message": "Parsing HTML Document..."}))
                             # scrape links and images from document
-                            scanned_urls = web.parse_html(r.data["url"], webreq.text)
-                            # send the scanned urls to the main thread for processing
-                            data = {"urls": scanned_urls}
-                            reqmsg = Message(thread="commander", type="fetch", status="finished", data=data)
-                            callback(reqmsg)
+                            scanned_urls = []
+                            if web.parse_html(url=r.data["url"], 
+                                              html=webreq.text, 
+                                              urls=scanned_urls,
+                                              images_only=False, 
+                                              thumbnails_only=True) > 0:
+                                # send the scanned urls to the main thread for processing
+                                callback(MessageMain(data={"message": f"Parsing succesful. Found {len(scanned_urls)} links"}))
+                                data = {"urls": scanned_urls}
+                                reqmsg = Message(thread="commander", type="fetch", status="finished", data=data)
+                                callback(reqmsg)
+                            else:
+                                # Nothing found notify main thread
+                                callback(MessageMain(data={"message": "No links found :("}))
                         webreq.close()
                     else:
-                        callback(Message(thread="commander", type="fetch", status="still_running"))
+                        callback(MessageMain(data={"message": "Still scanning for images please press cancel to start a new scan"}))
 
                 elif r.type == "cancel":
                     Threads.cancel.set()

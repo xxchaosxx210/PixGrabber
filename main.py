@@ -48,27 +48,13 @@ class MainApp(MDApp):
                         msg.data["message"])
             elif msg.type == "fetch":
                 if msg.status == "finished":
-                    self.root.download_container.statusbox.clear()
                     self.root.download_container.listbox.clear_widgets()
                     for url in msg.data.get("urls", []):
                         self.root.download_container.add_to_list(url)
-                elif msg.status == "started":
-                    self.root.download_container.statusbox.update(
-                        "COMMANDER",
-                        f"Found {msg.data['length']} links on first page. Now searching...")
-                else:
-                    self.root.download_container.statusbox.update(
-                        "COMMANDER",
-                        "Task already running")
             elif msg.type == "cancelled":
                 self.root.download_container.statusbox.update(
                         "COMMANDER",
                         "Cancelling Tasks...")
-            elif msg.type == "complete":
-                self.root.download_container.statusbox.update(
-                        "COMMANDER",
-                        "All Tasks have completed")
-              
         elif msg.thread == "grunt":
             if msg.type == "finished":
                 if msg.status == "complete":

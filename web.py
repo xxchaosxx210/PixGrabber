@@ -3,6 +3,8 @@ from bs4 import BeautifulSoup
 import browser_cookie3
 import os
 import re
+import threading
+
 from urllib import (
     parse
 )
@@ -11,11 +13,11 @@ from debug import Debug
 
 DEFAULT_USER_AGENT = "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:85.0) Gecko/20100101 Firefox/85.0"
 
-TEXT_HTML = "text/html"
-
 FILTER_SEARCH = ["imagevenue.com/", "imagebam.com/", "pixhost.to/"]
 
-_image_ext_pattern = re.compile('.jpg|.png|.tiff|.gif|.bmp|.jpeg')
+IMAGE_EXTS = (".jpg", ".bmp", ".jpeg", ".png", ".gif", ".tiff", ".ico")
+
+_image_ext_pattern = re.compile("|".join(IMAGE_EXTS))
 
 class Globals:
     regex_filter = None
@@ -59,6 +61,13 @@ def is_valid_content_type(url, content_type, valid_types):
     return ext
 
 def _appendlink(full_url, src, urllist):
+    """
+    _appendlink(str, str, list)
+    joins the url to the src and then uses a filter pattern
+    to search for matches. If a match is found then it is checked
+    in the urllist for conflicts if none found then it appends
+    to the urllist
+    """
     if src:
         url = parse.urljoin(full_url, src)
         # Filter the URL
@@ -70,51 +79,52 @@ def _appendlink(full_url, src, urllist):
             except ValueError:
                 urllist.append(url)
 
-def parse_html(url, html, thumbnail_only=True, level=1):
+def parse_html( url,
+                html, 
+                urls, 
+                images_only=False, 
+                thumbnails_only=False):
     """
-    parser_html(str, int)
-    if level 1 then return list of links and image tags found
-    if level 2 then returns img only
-    parsers html and looks for links and image tags
+    new_pasre_html(str, str, list, bool)
+    takes in the url linked to the html document.
+    the Urls is a reference ot the list all found links
+    and images will be stored in it. Specify images_only
+    if you only want to search for img and meta tags
+    everything else will be ignored set to False by default.
+
+    returns n size of found tags. 0 if none found
     """
     soup = BeautifulSoup(html, features="html.parser")
-    found_list = []
-    if level == 1:
-        anchors = soup.find_all("a")
-        if thumbnail_only:
-            for anchor in anchors:
-                if anchor.find("img"):
-                    # add the href from the anchor we dont want the thumbnail image
-                    _appendlink(url, anchor.get("href"), found_list)
-        else:
-            for anchor in anchors:
-                _appendlink(url, anchor.get("href"), found_list)
-    else:
-        # second level; scan img tags only
-        imgs = soup.find_all("img")
-        for img in imgs:
-            _appendlink(url, img.get("src"), found_list)
-        # find the meta data
-        for meta in soup.find_all("meta", content=_image_ext_pattern):
-            _appendlink(url, meta.get("content"), found_list)
-    return found_list
+
+    if not images_only:
+        # search for links on document too
+        atags = soup.find_all("a")
+        for atag in atags:
+            if thumbnails_only:
+                if atag.find("img"):
+                    _appendlink(url, atag.get("href"), urls)
+            else:
+                _appendlink(url, atag.get("href", ""), urls)
+    
+    # search image tags
+    for imgtag in soup.find_all("img"):
+        _appendlink(url, imgtag.get("src", ""), urls)
+
+    # search images in meta data
+    for metatag in soup.find_all("meta", content=_image_ext_pattern):
+        _appendlink(url, metatag.get("content", ""), urls)
+    
+    return len(urls)
 
 def _test():
     compile_regex_global_filter()
     cj = browser_cookie3.firefox()
-    url = "http://www.imagebam.com/image/7382191329586630"
+    url = "http://vintage-erotica-forum.com/t18747-p90-milena-velba-cze.html"
     r = requests.get(url, cookies=cj)
-    print(parse_html(url, r.text, True, 2))
-    r.close()
-    # print(is_valid_content_type(url, r.headers["Content-Type"], None))
-    # import time
-    # for x in range(10, 0, -1):
-    #     print(f"File will download in less than {x} minutes")
-    #     time.sleep(60)
-    # fp = open("cat.png", "wb")
-    # for buff in r.iter_content(1000):
-    #     fp.write(buff)
-    # print("Done")
+    urls = []
+    if parse_html(url, r.text, urls, False, True) > 0:
+        for link in urls:
+            print(link)
     r.close()
 
 if __name__ == '__main__':
