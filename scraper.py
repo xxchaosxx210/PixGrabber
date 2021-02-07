@@ -37,6 +37,35 @@ class Threads:
     semaphore = threading.Semaphore(10)
     cancel = threading.Event()
 
+class Urls:
+
+    """
+    Contains the static containers for holding found image links and URLs
+    these functions are thread safe
+    """
+
+    links = []
+    lock = threading.Lock()
+    images = []
+
+    @staticmethod
+    def add_url(url):
+        Urls.lock.acquire()
+        Urls.links.append(url)
+        Urls.lock.release()
+    
+    @staticmethod
+    def is_url_exist(url):
+        Urls.lock.acquire()
+        index = Urls.links.index(url)
+        Urls.lock.release()
+        return index > 0
+
+def request_from_url(url):
+    cj = web.browser_cookie3.firefox()
+    r = web.requests.get(url, cookies=cj)
+    return r
+
 def log_thread_safe(message):
     """
     print is synchronized.
@@ -70,11 +99,8 @@ class Grunt(threading.Thread):
     def run(self):
         Threads.semaphore.acquire()
         if not Threads.cancel.is_set():
-            notify_commander(Message(id=self.thread_index, thread="grunt", type="started", status="ok"))
-            for x in range(random.randint(1, 3)):
-                time.sleep(random.uniform(0.1, 0.5))
-                if Threads.cancel.is_set():
-                    break
+            #cj = web.browser_cookie3.firefox()
+            pass
         Threads.semaphore.release()
         if Threads.cancel.is_set():
             notify_commander(Message(id=self.thread_index, thread="grunt", status="cancelled", type="finished"))
@@ -106,13 +132,18 @@ def commander_thread(callback):
                 elif r.type == "fetch":                
                     if not _task_running:
                         grunts = []
-                        _simulate_grunts(grunts)
-                        _message = Message(thread="commander", 
-                                           type="message", 
-                                           data={"message": f"There are {len(grunts)} Grunts being deployed sir"})
-                        callback(_message)
-                        _task_running = True
-                        callback(Message(thread="commander", type="fetch", status="ok", data=r.data))
+                        # get the document from the URL
+                        webreq = request_from_url(r.data["url"])
+                        # make sure is a text document to parse
+                        ext = web.is_valid_content_type(r.data["url"], webreq.headers["Content-type"], None)
+                        if ext == ".html":
+                            # scrape links and images from document
+                            scanned_urls = web.parse_html(webreq.text)
+                            # send the scanned urls to the main thread for processing
+                            data = {"urls": scanned_urls}
+                            reqmsg = Message(thread="commander", type="fetch", status="finished", data=data)
+                            callback(reqmsg)
+                        webreq.close()
                     else:
                         callback(Message(thread="commander", type="fetch", status="still_running"))
 

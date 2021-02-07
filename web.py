@@ -54,7 +54,7 @@ def parse_html(html, thumbnail_only=True, level=1):
     if level 2 then returns img only
     parsers html and looks for links and image tags
     """
-    soup = BeautifulSoup(html)
+    soup = BeautifulSoup(html, features="html.parser")
     found_list = []
     if level == 1:
         anchors = soup.find_all("a")

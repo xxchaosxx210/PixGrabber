@@ -1,9 +1,8 @@
 web scrapper
-searches for links to images
-goes 2 pages deep
-
-searches for images brings back list of all found images
-and prompts user to start downloading them
+scrape the url for valid image links
+add them to MDList
+prompt user to start
+create threads from each listitem in MDList
 
 settings
 

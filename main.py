@@ -47,12 +47,15 @@ class MainApp(MDApp):
                         "COMMANDER",
                         msg.data["message"])
             elif msg.type == "fetch":
-                if msg.status == "ok":
+                if msg.status == "finished":
                     self.root.download_container.statusbox.clear()
                     self.root.download_container.listbox.clear_widgets()
+                    for url in msg.data.get("urls", []):
+                        self.root.download_container.add_to_list(url)
+                elif msg.status == "started":
                     self.root.download_container.statusbox.update(
                         "COMMANDER",
-                        f"Fetching {msg.data['url']} ...")
+                        f"Found {msg.data['length']} links on first page. Now searching...")
                 else:
                     self.root.download_container.statusbox.update(
                         "COMMANDER",
