@@ -37,7 +37,7 @@ DEFAULT_SETTINGS = {
     "minimum_image_resolution": {"width": 200, "height": 200},
     "thumbnails_only": True,
     "save_path": os.getcwd(),
-    "unique_pathname": True,
+    "unique_pathname": {"enabled": True, "name": ""},
     "generate_filenames": {"enabled": True, "name": "image"},
     "images_to_search": {
         "jpg": True, 
@@ -49,7 +49,7 @@ DEFAULT_SETTINGS = {
         "tga": False},
     "filter_search": {
         "filters": []},
-    "file_exists": "overwrite"
+    "file_exists": "overwrite",
     }
 
 global_settings = DEFAULT_SETTINGS

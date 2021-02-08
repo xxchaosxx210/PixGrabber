@@ -97,7 +97,7 @@ class SettingsContainer(MDBoxLayout):
 
     def on_unique_name(self, switch):
         settings = Settings.load()
-        settings["unique_pathname"] = switch.active
+        settings["unique_pathname"]["enabled"] = switch.active
         Settings.save(settings)
 
     def on_thumbnails_only(self, switch):
@@ -160,7 +160,7 @@ class SettingsContainer(MDBoxLayout):
 
         self.save_path_text = settings["save_path"]
 
-        self.unique_folder_name.active = settings["unique_pathname"]
+        self.unique_folder_name.active = settings["unique_pathname"]["enabled"]
 
         temp = settings["generate_filenames"]
         self.gen_filenames.active = temp["enabled"]

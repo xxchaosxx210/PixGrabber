@@ -27,30 +27,30 @@ def compile_regex_global_filter(filter_list=FILTER_SEARCH):
 
 def is_valid_content_type(url, content_type, valid_types):
     """
-    is_valid_content_type(str, str, list)
+    is_valid_content_type(str, str, dict)
     checks if mimetype is an image and matches valid images
     url           - the url of the content-type
     content_type  - is a string found in the headers['Content-Type'] dict
-    valid_types   - a list containing valid files for searching
+    valid_types   - a dict containing valid files for searching
     returns an empty string if not valid or a file extension related to the file type
     will always return a valid file extension if html document
     """
     ext = ""
     if 'text/html' in content_type:
         ext = ".html"
-    elif content_type == 'image/gif':
+    elif content_type == 'image/gif' and valid_types["gif"]:
         ext = ".gif"
-    elif content_type == 'image/png':
+    elif content_type == 'image/png' and valid_types["png"]:
         ext = ".png"
-    elif content_type == 'image/ico':
+    elif content_type == 'image/ico' and valid_types["ico"]:
         ext = ".ico"
-    elif content_type == 'image/jpeg':
+    elif content_type == 'image/jpeg' and valid_types["jpg"]:
         ext = ".jpg"
-    elif content_type == 'image/tiff':
+    elif content_type == 'image/tiff' and valid_types["tiff"]:
         ext = ".tiff"
-    elif content_type == 'image/tga':
+    elif content_type == 'image/tga' and valid_types["tga"]:
         ext = ".tga"
-    elif content_type == 'image/bmp':
+    elif content_type == 'image/bmp' and valid_types["bmp"]:
         ext = ".bmp"
     elif content_type == 'application/octet-stream':
         # file attachemnt use the extension from the url
@@ -78,6 +78,10 @@ def _appendlink(full_url, src, urllist):
                 urllist.index(url)
             except ValueError:
                 urllist.append(url)
+
+def get_title_from_html(html):
+    soup = BeautifulSoup(html, features="html.parser")
+    return soup.find("title")
 
 def parse_html( url,
                 html, 

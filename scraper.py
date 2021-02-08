@@ -8,6 +8,11 @@ import os
 from io import BytesIO
 from PIL import Image
 from http.cookiejar import CookieJar
+import string
+
+from urllib.request import (
+    url2pathname
+)
 
 from dataclasses import dataclass
 
@@ -52,6 +57,8 @@ class Threads:
     semaphore = threading.Semaphore(10)
     # global event to cancel current running task
     cancel = threading.Event()
+
+    new_folder_lock = threading.Lock()
 
 class Urls:
 
@@ -125,10 +132,14 @@ def request_from_url(url, settings):
         cj = web.browser_cookie3.edge()
     else:
         cj = CookieJar()
-    r = web.requests.get(url, 
-                        cookies=cj, 
-                        headers={"User-Agent": web.FIREFOX_USER_AGENT},
-                        timeout=settings["connection_timeout"])
+    try:
+        r = web.requests.get(url, 
+                            cookies=cj, 
+                            headers={"User-Agent": web.FIREFOX_USER_AGENT},
+                            timeout=settings["connection_timeout"])
+    except web.requests.ReadTimeout as err:
+        Debug.log_file("ConnectionError", "request_from_url", f"Connection times out on {url}")
+        r = None
     return r
 
 def log_thread_safe(message):
@@ -150,7 +161,7 @@ def create_commander(callback):
         target=commander_thread, kwargs={"callback": callback})
     return Threads.commander
 
-def download_image(path, filename, response):
+def download_image(filename, response, settings):
     """
     download_image(str, str, object)
 
@@ -169,9 +180,56 @@ def download_image(path, filename, response):
     width, height = image.size
     # if image requirements met then save
     if width > 200 and height > 200:
+        # check if directory exists
+        Threads.new_folder_lock.acquire()
+        if not os.path.exists(settings["save_path"]):
+            os.mkdir(settings["save_path"])
+        if settings["unique_pathname"]["enabled"]:
+            path = os.path.join(settings["save_path"], settings["unique_pathname"]["name"])
+            if not os.path.exists(path):
+                os.mkdir(path)
+        else:
+            path = settings["save_path"]
+        Threads.new_folder_lock.release()
         ImageFile.write_to_file(path, filename, byte_stream)
     byte_stream.close()        
     image.close()
+
+def _assign_unique_name(url, html_doc):
+    """
+    uses the title tag in the html docunment
+    as a folder name
+    uses the url instead
+    """
+    Threads.new_folder_lock.acquire()
+    title = web.get_title_from_html(html_doc)
+    if title:
+        unique_name = url2pathname(title.text)
+    else:
+        unique_name = url2pathname(url)
+    # remove any illegal characters
+    # this function was taken from stackoverflow
+    # assign to global unique_path_name
+    settings = Settings.load()
+    settings["unique_pathname"]["name"] = format_filename(unique_name)
+    Settings.save(settings)
+    Threads.new_folder_lock.release()
+
+def format_filename(s):
+    """Take a string and return a valid filename constructed from the string.
+        Uses a whitelist approach: any characters not present in valid_chars are
+        removed. Also spaces are replaced with underscores.
+        
+        Note: this method may produce invalid filenames such as ``, `.` or `..`
+        When I use this method I prepend a date string like '2009_01_15_19_46_32_'
+        and append a file extension like '.txt', so I avoid the potential of using
+        an invalid filename.
+        
+        """
+    valid_chars = f"-_.() {string.ascii_letters}{string.digits}"
+    filename = ''.join(c for c in s if c in valid_chars)
+    filename = filename.replace(' ','_') # I don't like spaces in filenames.
+    return filename
 
 
 class Grunt(threading.Thread):
@@ -202,39 +260,52 @@ class Grunt(threading.Thread):
             notify_commander(GruntMessage(status="ok", type="scanning"))
             # request the url
             r = request_from_url(self.url, self.settings)
-            ext = web.is_valid_content_type(self.url, r.headers.get("Content-Type"), None)
-            if ".html" == ext:
-                imgs = []
-                # parse the document and search for images only
-                if web.parse_html(self.url, r.text, imgs, images_only=True, thumbnails_only=False) > 0:
-                    r.close()
+            if r:
+                ext = web.is_valid_content_type(self.url, r.headers.get("Content-Type"), self.settings["images_to_search"])
+                if ".html" == ext:
+                    imgs = []
+                    # parse the document and search for images only
+                    if web.parse_html(self.url, r.text, imgs, images_only=True, thumbnails_only=False) > 0:
+                        r.close()
 
-                    for index, imgurl in enumerate(imgs):
-                        # check if url has already in global list
-                        if not Urls.url_exists(imgurl):
-                            # its ok then add it to the global list
-                            Urls.add_url(imgurl)
-                            # download each one and save it
-                            imgresp = request_from_url(imgurl, self.settings)
-                            # check the content-type matches and image
-                            ext = web.is_valid_content_type(imgurl, imgresp.headers.get("Content-Type"), None)
-                            if ext in web.IMAGE_EXTS:
-                                # if image then create a file path and check
-                                # the image resolution size matches
-                                # if it does then save to file
-                                path = os.path.join(os.getcwd(), "test")
-                                filename = f"test{self.thread_index}_{index}{ext}"
-                                download_image(path, filename, imgresp)
-                            # close the image request handle
-                            imgresp.close()
-            else:
-                if ext in web.IMAGE_EXTS:
-                    if not Urls.url_exists(self.url):
-                        Urls.add_url(self.url)
-                        path = os.path.join(os.getcwd(), "test")
-                        filename = f"test{self.thread_index}{ext}"
-                        download_image(path, filename, r)
-                r.close()
+                        for index, imgurl in enumerate(imgs):
+                            # check if url has already in global list
+                            if not Urls.url_exists(imgurl):
+                                # its ok then add it to the global list
+                                Urls.add_url(imgurl)
+                                # download each one and save it
+                                imgresp = request_from_url(imgurl, self.settings)
+
+                                if imgresp:
+                                    # check the content-type matches and image
+                                    ext = web.is_valid_content_type(imgurl, 
+                                                                    imgresp.headers.get("Content-Type"), 
+                                                                    self.settings["images_to_search"])
+
+                                    if ext in web.IMAGE_EXTS:
+                                        # if image then create a file path and check
+                                        # the image resolution size matches
+                                        # if it does then save to file
+                                        if self.settings["generate_filenames"]["enabled"]:
+                                            filename = f'{self.settings["generate_filenames"]["name"]}{self.thread_index}{ext}'
+                                        else:
+                                            filename = f"test{self.thread_index}{ext}"
+                                        download_image(filename, imgresp, self.settings)
+                                    # close the image request handle
+                                    imgresp.close()
+                else:
+                    if ext in web.IMAGE_EXTS:
+                        if not Urls.url_exists(self.url):
+                            Urls.add_url(self.url)
+                            # if image then create a file path and check
+                            # the image resolution size matches
+                            # if it does then save to file
+                            if self.settings["generate_filenames"]["enabled"]:
+                                filename = f'{self.settings["generate_filenames"]["name"]}{self.thread_index}{ext}'
+                            else:
+                                filename = f"test{self.thread_index}{ext}"
+                            download_image(filename, r, self.settings)
+                    r.close()
         Threads.semaphore.release()
         if Threads.cancel.is_set():
             notify_commander(GruntMessage(status="cancelled", type="finished"))
@@ -299,26 +370,30 @@ def commander_thread(callback):
                         # get the document from the URL
                         callback(MessageMain(data={"message": f"Connecting to {r.data['url']}"}))
                         webreq = request_from_url(r.data["url"], settings)
-                        # make sure is a text document to parse
-                        ext = web.is_valid_content_type(r.data["url"], webreq.headers["Content-type"], None)
-                        if ext == ".html":
-                            callback(MessageMain(data={"message": "Parsing HTML Document..."}))
-                            # scrape links and images from document
-                            scanned_urls = []
-                            if web.parse_html(url=r.data["url"], 
-                                              html=webreq.text, 
-                                              urls=scanned_urls,
-                                              images_only=False, 
-                                              thumbnails_only=True) > 0:
-                                # send the scanned urls to the main thread for processing
-                                callback(MessageMain(data={"message": f"Parsing succesful. Found {len(scanned_urls)} links"}))
-                                data = {"urls": scanned_urls}
-                                reqmsg = Message(thread="commander", type="fetch", status="finished", data=data)
-                                callback(reqmsg)
-                            else:
-                                # Nothing found notify main thread
-                                callback(MessageMain(data={"message": "No links found :("}))
-                        webreq.close()
+                        if webreq:
+                            # make sure is a text document to parse
+                            ext = web.is_valid_content_type(r.data["url"], webreq.headers["Content-type"], settings["images_to_search"])
+                            if ext == ".html":
+                                html_doc = webreq.text
+                                # get the url title
+                                _assign_unique_name(r.data["url"], html_doc)
+                                callback(MessageMain(data={"message": "Parsing HTML Document..."}))
+                                # scrape links and images from document
+                                scanned_urls = []
+                                if web.parse_html(url=r.data["url"], 
+                                                html=html_doc, 
+                                                urls=scanned_urls,
+                                                images_only=False, 
+                                                thumbnails_only=True) > 0:
+                                    # send the scanned urls to the main thread for processing
+                                    callback(MessageMain(data={"message": f"Parsing succesful. Found {len(scanned_urls)} links"}))
+                                    data = {"urls": scanned_urls}
+                                    reqmsg = Message(thread="commander", type="fetch", status="finished", data=data)
+                                    callback(reqmsg)
+                                else:
+                                    # Nothing found notify main thread
+                                    callback(MessageMain(data={"message": "No links found :("}))
+                            webreq.close()
                     else:
                         callback(MessageMain(data={"message": "Still scanning for images please press cancel to start a new scan"}))
 
