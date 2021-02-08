@@ -1,8 +1,5 @@
 import threading
 import queue
-import json
-import time
-import random
 import functools
 import os
 from io import BytesIO
@@ -139,7 +136,7 @@ def request_from_url(url, settings):
                             cookies=cj, 
                             headers={"User-Agent": web.FIREFOX_USER_AGENT},
                             timeout=settings["connection_timeout"])
-    except web.requests.ReadTimeout as err:
+    except web.requests.ReadTimeout:
         Debug.log_file("ConnectionError", "request_from_url", f"Connection times out on {url}")
         r = None
     return r

@@ -3,7 +3,6 @@ from bs4 import BeautifulSoup
 import browser_cookie3
 import os
 import re
-import threading
 
 from urllib import (
     parse
@@ -65,7 +64,7 @@ def is_valid_content_type(url, content_type, valid_types):
         try:
             ext = os.path.splitext(url)[1]
         except IndexError as err:
-            Debug.log(f"is_valid_content_type web.py", err, error=err.__str__(), url=url, content_type=content_type)
+            Debug.log("is_valid_content_type web.py", err, error=err.__str__(), url=url, content_type=content_type)
     return ext
 
 def _appendlink(full_url, src, urllist):

@@ -1,8 +1,5 @@
-import random
 import time
-import json
 import os
-from collections import namedtuple
 from kivy.logger import Logger
 
 from global_props import (

@@ -2,7 +2,6 @@ from kivymd.uix.boxlayout import MDBoxLayout
 from kivy.lang import Builder
 
 from scraper import (
-    Threads,
     notify_commander,
     Message
 )
