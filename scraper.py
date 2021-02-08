@@ -7,6 +7,7 @@ import functools
 import os
 from io import BytesIO
 from PIL import Image
+from http.cookiejar import CookieJar
 
 from dataclasses import dataclass
 
@@ -107,13 +108,23 @@ class ImageFile:
         ImageFile.file_lock.release()
 
 
-def request_from_url(url):
+def request_from_url(url, settings):
     """
     request_from_url(str)
 
     gets the request from url and returns the requests object
     """
-    cj = web.browser_cookie3.firefox()
+    cookies = settings["cookies"]
+    if cookies["firefox"]:
+        cj = web.browser_cookie3.firefox()
+    elif cookies["chrome"]:
+        cj = web.browser_cookie3.chrome()
+    elif cookies["opera"]:
+        cj = web.browser_cookie3.opera()
+    elif cookies["edge"]:
+        cj = web.browser_cookie3.edge()
+    else:
+        cj = CookieJar()
     r = web.requests.get(url, 
                         cookies=cj, 
                         headers={"User-Agent": web.FIREFOX_USER_AGENT})
@@ -189,7 +200,7 @@ class Grunt(threading.Thread):
         if not Threads.cancel.is_set():
             notify_commander(GruntMessage(status="ok", type="scanning"))
             # request the url
-            r = request_from_url(self.url)
+            r = request_from_url(self.url, self.settings)
             ext = web.is_valid_content_type(self.url, r.headers.get("Content-Type"), None)
             if ".html" == ext:
                 imgs = []
@@ -203,7 +214,7 @@ class Grunt(threading.Thread):
                             # its ok then add it to the global list
                             Urls.add_url(imgurl)
                             # download each one and save it
-                            imgresp = request_from_url(imgurl)
+                            imgresp = request_from_url(imgurl, self.settings)
                             # check the content-type matches and image
                             ext = web.is_valid_content_type(imgurl, imgresp.headers.get("Content-Type"), None)
                             if ext in web.IMAGE_EXTS:
@@ -266,6 +277,11 @@ def commander_thread(callback):
                         # whilst downloading and saving to file
                         settings = dict(Settings.load())
 
+                        # Set the max connections
+                        max_connections = round(int(settings["max_connections"]))
+                        Threads.semaphore = threading.Semaphore(max_connections)
+                        Debug.log_file("SETTINGS", "commander.run", f"Max Connections set to {max_connections}")
+
                         callback(MessageMain(data={"message": "Starting Threads..."}))
                         for thread_index, url in enumerate(r.data["urls"]):
                             grunts.append(Grunt(thread_index, url, settings))
@@ -274,12 +290,14 @@ def commander_thread(callback):
 
                 elif r.type == "fetch":                
                     if not _task_running:
+                        # Load settings
+                        settings = Settings.load()
                         callback(MessageMain(data={"message": "Initializing the global search filter..."}))
                         # compile our filter matches only add those from the filter list
                         web.compile_regex_global_filter()
                         # get the document from the URL
                         callback(MessageMain(data={"message": f"Connecting to {r.data['url']}"}))
-                        webreq = request_from_url(r.data["url"])
+                        webreq = request_from_url(r.data["url"], settings)
                         # make sure is a text document to parse
                         ext = web.is_valid_content_type(r.data["url"], webreq.headers["Content-type"], None)
                         if ext == ".html":

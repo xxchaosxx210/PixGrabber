@@ -73,7 +73,7 @@ Builder.load_string("""
         HorizontalSpacer:
     VerticalSpacer:
     ScrollView:
-        scroll_type: ["bars"]
+        scroll_type: ["bars", "content"]
         bar_width: "20dp"
         MDList:
             id: id_listbox
