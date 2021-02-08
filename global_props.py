@@ -8,11 +8,7 @@ import os
 import json
 from threading import Lock
 
-is_android = platform == "android"
-
 VERSION = "0.1"
-
-DEFAULT_ZOOM = 10
 
 # Get settings folder path
 
@@ -34,28 +30,49 @@ _file_lock = Lock()
 
 DEFAULT_SETTINGS = {
     "app_version": VERSION,
-    "browser_cookies": {"firefox": True},
+    "browser_cookies": {"firefox": True, "chrome": False, "opera": False, "edge": False},
     "proxy": {"enable": False, "ip": "", "port": 0, "username": "", "password": ""},
     "max_connections": 10,
     "connection_timeout": 5,
-    "minimum_image_resolution": {"with": 200, "height": 200},
-    "thumbnail_search_only": True,
+    "minimum_image_resolution": {"width": 200, "height": 200},
+    "thumbnails_only": True,
     "save_path": os.path.join(PATH, DEFAULT_PICTURE_PATH),
+    "unique_pathname": True,
+    "generate_filenames": {"enabled": True, "name": "image"},
+    "images_to_search": {
+        "jpg": True, 
+        "png": False,
+        "gif": False,
+        "bmp": False,
+        "ico": False,
+        "tiff": False,
+        "tga": False},
     "filter_search": {
         "filters": []}
     }
 
-def load_Settings():
-    """
-    returns json object stored on disk returns DEFAULT_SETTINGS if no file found
-    """
-    data = load(SETTINGS_PATH)
-    if data:
-        return json.loads(data)
-    return DEFAULT_SETTINGS
+global_settings = DEFAULT_SETTINGS
 
-def save_settings(data):
-    save(SETTINGS_PATH, json.dumps(data))
+class Settings:
+
+    lock = Lock()
+
+    @staticmethod
+    def load():
+        settings = DEFAULT_SETTINGS
+        Settings.lock.acquire()
+        data = load(SETTINGS_PATH)
+        if data:
+            settings = json.loads(data)
+        Settings.lock.release()
+        return settings
+    
+    @staticmethod
+    def save(settings):
+        Settings.lock.acquire()
+        save(SETTINGS_PATH, json.dumps(settings))
+        Settings.lock.release()
+
 
 def check_path_exists():
     if not os.path.exists(PATH):

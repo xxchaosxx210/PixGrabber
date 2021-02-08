@@ -14,6 +14,10 @@ from scraper import (
     Message
 )
 
+from global_props import (
+    Settings
+)
+
 from kivy.logger import Logger
 
 
@@ -25,6 +29,9 @@ class MainContainer(MDBoxLayout):
 class MainApp(MDApp):
     
     def on_start(self):
+        # load the settings
+        settings = Settings.load()
+        self.root.settings_container.load_settings(settings)
         # create global thread for handling web requests and worker threads
         commander = create_commander(self.message_from_handler)
         # start the handler thread this will stay looping for the remainder

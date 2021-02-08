@@ -15,6 +15,9 @@
     orientation: "vertical"
     spacing: "10dp"
 
+    max_connections_slider: id_max_connections
+    connection_timeout_text: id_connection_timeout.text
+
     ScrollView:
         scroll_type: ["bars", "content"]
         bar_width: "20dp"
@@ -23,28 +26,28 @@
             cols: 1
             adaptive_height: True
             padding: "20dp"
-            spacing: "40dp"
+            spacing: "30dp"
 
             MDSeparator:
 
             StyleLabel:
                 text: "Max Connections"
-                
-            MDSlider:
-                size_hint_y: None
-                height: "36dp"
-                min: 1
-                max: 30
-                id: id_max_connections
-                value: 10
+            
+            VerticalContainer:
+                MDSlider:
+                    min: 1
+                    max: 30
+                    id: id_max_connections
+                    value: 10
 
             StyleLabel:
                 text: "Connection Timeout"
 
             VerticalContainer:
                 MDTextField:
-                    text: "5"
+                    text: root.connection_timeout_text
                     input_filter: "int"
+                    id: id_connection_timeout
 
             MDSeparator:
 
@@ -108,8 +111,35 @@
                     id: id_gen_prefix_check
                 
                 MDTextField:
+                    pos_hint:{"center_y": .4}
                     text: "image"
                     id: id_gen_prefix_text
+            
+            MDSeparator:
+
+            StyleLabel:
+                text: "Use Browser cookies"
+
+            VerticalContainer:
+                MDLabel:
+                    text: "Firefox"
+                MDCheckbox:
+                    active: True
+            VerticalContainer:
+                MDLabel:
+                    text: "Google Chrome"
+                MDCheckbox:
+                    active: True
+            VerticalContainer:
+                MDLabel:
+                    text: "Opera"
+                MDCheckbox:
+                    active: False
+            VerticalContainer:
+                MDLabel:
+                    text: "Edge"
+                MDCheckbox:
+                    active: False
             
             MDSeparator:
 
