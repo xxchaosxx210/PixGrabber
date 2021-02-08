@@ -58,6 +58,9 @@ class MainApp(MDApp):
                     self.root.download_container.listbox.clear_widgets()
                     for url in msg.data.get("urls", []):
                         self.root.download_container.add_to_list(url)
+                    value = len(msg.data.get("urls"))
+                    self.root.download_container.progressbar.max = value
+                    self.root.download_container.progressbar.value = 0
             elif msg.type == "cancelled":
                 self.root.download_container.statusbox.update(
                         "COMMANDER",
@@ -67,6 +70,7 @@ class MainApp(MDApp):
                     "COMMANDER",
                     "Task complete"
                 )
+                self.root.download_container.progressbar.value = 0
                 self.root.download_container.listbox.clear_widgets()
         elif msg.thread == "grunt":
             if msg.type == "finished":
@@ -74,6 +78,7 @@ class MainApp(MDApp):
                     self.root.download_container.statusbox.update(
                         f"GRUNT#{msg.id}",
                         "has completed")
+                    self.root.download_container.progressbar.value += 1
                 elif msg.status == "cancelled":
                     Logger.info(f"GRUNT#{msg.id}: has cancelled")
             elif msg.type == "started":

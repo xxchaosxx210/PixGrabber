@@ -32,6 +32,7 @@ Builder.load_string("""
     app: app
     path_textfield: id_path.text
     statusbox: id_statusbox
+    progressbar: id_progress_bar
 
     VerticalSpacer:
 
@@ -82,7 +83,7 @@ Builder.load_string("""
         min: 0
         max: 100
         value: 50
-        id: progress_bar
+        id: id_progress_bar
     StatusBox:
         orientation: "vertical"
         size_hint: 1, .3
@@ -130,6 +131,7 @@ class DownloadBoxContainer(MDBoxLayout):
     path_textfield = ObjectProperty("")
     app = ObjectProperty(None)
     statusbox = ObjectProperty(None)
+    progressbar = ObjectProperty(None)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
