@@ -6,9 +6,7 @@ from kivymd.uix.list import OneLineIconListItem
 
 from kivy.utils import platform
 
-is_windows = platform == "win"
-
-if is_windows:
+if platform == "win":
     from win32.win32api import GetLogicalDriveStrings
 
 from kivy.properties import (
@@ -62,13 +60,21 @@ class DirDialog(MDDialog):
         self.content_cls.path = path
     
     def set_path(self, path):
+        """
+        set_path(str)
+        Sets the directory path
+        """
+        # clear the MDList
         self.content_cls.dirlist.clear_widgets()
+        # Create a Folder back item append it to the top of the MDList
         folder_back = FolderBackListItem(on_press=self.on_clicked_back)
         self.content_cls.dirlist.add_widget(folder_back)
+        # Initialize the path
         self.content_cls.path = path
 
+        # Windows Specific
         # add the drive paths if windows
-        if is_windows:
+        if platform == "win":
             for drive_letter in GetLogicalDriveStrings().split("\x00"):
                 if drive_letter:
                     item = FolderListItem(text=drive_letter, 
