@@ -28,20 +28,18 @@ Builder.load_string("""
 <DownloadBoxContainer>:
     size_hint: 1, 1
     orientation: "vertical"
-    listbox: id_listbox
     app: app
     path_textfield: id_path.text
     statusbox: id_statusbox
     progressbar: id_progress_bar
 
-    VerticalSpacer:
+    padding: "40dp"
+    spacing: "40dp"
 
     MDBoxLayout:
         size_hint: 1, .1
         orientation: "horizontal"
-        spacing: "10dp"
 
-        HorizontalSpacer:
         MDTextField:
             size_hint: .9, None
             height: dp(48)
@@ -49,7 +47,6 @@ Builder.load_string("""
             hint_text: "Url"
             id: id_path
             text: root.path_textfield
-        HorizontalSpacer:
         MDFloatingActionButton:
             id: id_fetch_button
             icon: "image-search"
@@ -71,22 +68,9 @@ Builder.load_string("""
             opposite_colors: True
             elevation: 8
             md_bg_color: 30/255, 144/255, 255/255, 1
-        HorizontalSpacer:
-    VerticalSpacer:
-    ScrollView:
-        scroll_type: ["bars", "content"]
-        bar_width: "20dp"
-        MDList:
-            id: id_listbox
-    MDProgressBar:
-        size_hint: 1, .1
-        min: 0
-        max: 100
-        value: 50
-        id: id_progress_bar
     StatusBox:
         orientation: "vertical"
-        size_hint: 1, .3
+        size_hint: 1, .8
         text: id_status_label.text
         id: id_statusbox
         scrollview: id_scrollview
@@ -101,6 +85,12 @@ Builder.load_string("""
                 height: self.texture_size[1]
                 text: root.statusbox.text
                 id: id_status_label
+    MDProgressBar:
+        size_hint: 1, .1
+        min: 0
+        max: 100
+        value: 0
+        id: id_progress_bar
 """)
 
 
@@ -127,7 +117,6 @@ class UrlListItem(OneLineAvatarIconListItem):
 
 class DownloadBoxContainer(MDBoxLayout):
 
-    listbox = ObjectProperty(None)
     path_textfield = StringProperty("")
     app = ObjectProperty(None)
     statusbox = ObjectProperty(None)
@@ -137,10 +126,7 @@ class DownloadBoxContainer(MDBoxLayout):
         super().__init__(**kwargs)
     
     def on_start_button(self, *args):
-        urls = list(map(lambda listitem : listitem.text, self.listbox.children))
-        urls.reverse()
-        data = {"urls": urls}
-        notify_commander(Message(thread="main", type="start", data=data))
+        notify_commander(Message(thread="main", type="start"))
 
     def on_fetch_button(self, *args):
         if self.path_textfield:
@@ -149,17 +135,3 @@ class DownloadBoxContainer(MDBoxLayout):
     
     def on_cancel_button(self, *args):
         notify_commander(Message(thread="main", type="cancel"))
-
-    def load_list(self, links):
-        self.listbox.clear_widgets()
-        for link in links:
-            listitem = UrlListItem(
-                text=link
-            )
-            self.listbox.add_widget(listitem)
-    
-    def add_to_list(self, text):
-        listitem = UrlListItem(
-                text=text
-                )
-        self.listbox.add_widget(listitem)

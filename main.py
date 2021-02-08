@@ -55,9 +55,6 @@ class MainApp(MDApp):
                         msg.data["message"])
             elif msg.type == "fetch":
                 if msg.status == "finished":
-                    self.root.download_container.listbox.clear_widgets()
-                    for url in msg.data.get("urls", []):
-                        self.root.download_container.add_to_list(url)
                     value = len(msg.data.get("urls"))
                     self.root.download_container.progressbar.max = value
                     self.root.download_container.progressbar.value = 0
@@ -71,7 +68,6 @@ class MainApp(MDApp):
                     "Task complete"
                 )
                 self.root.download_container.progressbar.value = 0
-                self.root.download_container.listbox.clear_widgets()
                 self.root.download_container.path_textfield = ""
         elif msg.thread == "grunt":
             if msg.type == "finished":

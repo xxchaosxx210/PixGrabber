@@ -331,6 +331,7 @@ def commander_thread(callback):
     MessageMain = functools.partial(Message, thread="commander", type="message")
     # settings dict will contain the settings at start of scraping
     settings = {}
+    scanned_urls = []
     while not quit:
         try:
             # Get the json object from the global queue
@@ -357,7 +358,7 @@ def commander_thread(callback):
                         Debug.log_file("SETTINGS", "commander.run", f"Max Connections set to {max_connections}")
 
                         callback(MessageMain(data={"message": "Starting Threads..."}))
-                        for thread_index, url in enumerate(r.data["urls"]):
+                        for thread_index, url in enumerate(scanned_urls):
                             grunts.append(Grunt(thread_index, url, settings))
                         for _grunt in grunts:
                             _grunt.start()
