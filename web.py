@@ -126,17 +126,3 @@ def parse_html( url,
         _appendlink(url, metatag.get("content", ""), urls)
     
     return len(urls)
-
-def _test():
-    compile_regex_global_filter()
-    cj = browser_cookie3.firefox()
-    url = "http://vintage-erotica-forum.com/t18747-p90-milena-velba-cze.html"
-    r = requests.get(url, cookies=cj)
-    urls = []
-    if parse_html(url, r.text, urls, False, True) > 0:
-        for link in urls:
-            print(link)
-    r.close()
-
-if __name__ == '__main__':
-    _test()
