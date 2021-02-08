@@ -127,7 +127,8 @@ def request_from_url(url, settings):
         cj = CookieJar()
     r = web.requests.get(url, 
                         cookies=cj, 
-                        headers={"User-Agent": web.FIREFOX_USER_AGENT})
+                        headers={"User-Agent": web.FIREFOX_USER_AGENT},
+                        timeout=settings["connection_timeout"])
     return r
 
 def log_thread_safe(message):

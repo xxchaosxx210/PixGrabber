@@ -33,7 +33,7 @@ DEFAULT_SETTINGS = {
     "cookies": {"firefox": True, "chrome": False, "opera": False, "edge": False},
     "proxy": {"enable": False, "ip": "", "port": 0, "username": "", "password": ""},
     "max_connections": 10,
-    "connection_timeout": 3,
+    "connection_timeout": 5,
     "minimum_image_resolution": {"width": 200, "height": 200},
     "thumbnails_only": True,
     "save_path": os.path.join(PATH, DEFAULT_PICTURE_PATH),
