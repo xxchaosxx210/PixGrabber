@@ -128,7 +128,7 @@ class UrlListItem(OneLineAvatarIconListItem):
 class DownloadBoxContainer(MDBoxLayout):
 
     listbox = ObjectProperty(None)
-    path_textfield = ObjectProperty("")
+    path_textfield = StringProperty("")
     app = ObjectProperty(None)
     statusbox = ObjectProperty(None)
     progressbar = ObjectProperty(None)

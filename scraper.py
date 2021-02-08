@@ -109,9 +109,11 @@ class ImageFile:
         ImageFile.file_lock.acquire()
         if not os.path.exists(path):
             os.mkdir(path)
-        with open(os.path.join(path, filename), "wb") as fp:
+        full_path = os.path.join(path, filename)
+        with open(full_path, "wb") as fp:
             fp.write(bytes_stream.getbuffer())
             fp.close()
+            notify_commander(Message(thread="grunt", type="image", status="ok", data={"pathname": full_path}))
         ImageFile.file_lock.release()
 
 

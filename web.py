@@ -13,7 +13,15 @@ from debug import Debug
 
 FIREFOX_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:85.0) Gecko/20100101 Firefox/85.0"
 
-FILTER_SEARCH = ["imagevenue.com/", "imagebam.com/", "pixhost.to/"]
+FILTER_SEARCH = [
+    "imagevenue.com/", 
+    "imagebam.com/", 
+    "pixhost.to/",
+    "lulzimg",
+    "pimpandhost",
+    "imagetwist",
+    "imgbox",
+    "turboimagehost"]
 
 IMAGE_EXTS = (".jpg", ".bmp", ".jpeg", ".png", ".gif", ".tiff", ".ico")
 

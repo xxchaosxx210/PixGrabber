@@ -72,17 +72,20 @@ class MainApp(MDApp):
                 )
                 self.root.download_container.progressbar.value = 0
                 self.root.download_container.listbox.clear_widgets()
+                self.root.download_container.path_textfield = ""
         elif msg.thread == "grunt":
             if msg.type == "finished":
                 if msg.status == "complete":
-                    self.root.download_container.statusbox.update(
-                        f"GRUNT#{msg.id}",
-                        "has completed")
                     self.root.download_container.progressbar.value += 1
                 elif msg.status == "cancelled":
                     Logger.info(f"GRUNT#{msg.id}: has cancelled")
             elif msg.type == "started":
                 Logger.info(f"GRUNT#{msg.id}: has started...")
+            elif msg.type == "image":
+                if msg.status == "ok":
+                    self.root.download_container.statusbox.update(
+                        "Image Saved",
+                        f"{msg.data['pathname']}")
                 
     def on_stop(self):
         if Threads.commander.is_alive():
