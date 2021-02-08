@@ -141,11 +141,13 @@
                 MDCheckbox:
                     active: True
                     id: id_gen_prefix_check
+                    on_active: root.on_gen_filename_check(self)
                 
                 MDTextField:
                     pos_hint:{"center_y": .4}
                     text: root.gen_prefix_text
                     id: id_gen_prefix_text
+                    on_text: root.on_gen_filename_text(self.text)
             
             MDSeparator:
 
@@ -192,42 +194,49 @@
                 MDCheckbox:
                     active: True
                     id: id_jpg_check
+                    on_active: root.on_image_ext_check(self)
             VerticalContainer:
                 MDLabel:
                     text: "PNG"
                 MDCheckbox:
                     active: True
                     id: id_png_check
+                    on_active: root.on_image_ext_check(self)
             VerticalContainer:
                 MDLabel:
                     text: "GIF"
                 MDCheckbox:
                     active: True
                     id: id_gif_check
+                    on_active: root.on_image_ext_check(self)
             VerticalContainer:
                 MDLabel:
                     text: "BMP"
                 MDCheckbox:
                     active: True
                     id: id_bmp_check
+                    on_active: root.on_image_ext_check(self)
             VerticalContainer:
                 MDLabel:
                     text: "ICO"
                 MDCheckbox:
                     active: True
                     id: id_ico_check
+                    on_active: root.on_image_ext_check(self)
             VerticalContainer:
                 MDLabel:
                     text: "TIFF"
                 MDCheckbox:
                     active: True
                     id: id_tiff_check
+                    on_active: root.on_image_ext_check(self)
             VerticalContainer:
                 MDLabel:
                     text: "TGA"
                 MDCheckbox:
                     active: True
                     id: id_tga_check
+                    on_active: root.on_image_ext_check(self)
             
             MDSeparator:
 

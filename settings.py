@@ -64,6 +64,29 @@ class SettingsContainer(MDBoxLayout):
     opera_check = ObjectProperty(None)
     edge_check = ObjectProperty(None)
 
+    def on_image_ext_check(self, checkbox):
+        settings = Settings.load()
+        ext = settings["images_to_search"]
+        ext["jpg"] = self.jpg_check.active
+        ext["png"] = self.png_check.active
+        ext["gif"] = self.gif_check.active
+        ext["bmp"] = self.bmp_check.active
+        ext["ico"] = self.ico_check.active
+        ext["tiff"] = self.tiff_check.active
+        ext["tga"] = self.tga_check.active
+        Settings.save(settings)
+
+    def on_gen_filename_check(self, switch):
+        settings = Settings.load()
+        settings["generate_filenames"]["enabled"] = switch.active
+        Settings.save(settings)
+
+    def on_gen_filename_text(self, text):
+        if text:
+            settings = Settings.load()
+            settings["generate_filenames"]["name"] = text
+            Settings.save(settings)
+
     def on_unique_name(self, switch):
         settings = Settings.load()
         settings["unique_pathname"] = switch.active
@@ -130,8 +153,7 @@ class SettingsContainer(MDBoxLayout):
 
         temp = settings["generate_filenames"]
         self.gen_filenames.active = temp["enabled"]
-        if temp["enabled"]:
-            self.gen_prefix_text = temp["name"]
+        self.gen_prefix_text = temp["name"]
 
         cookies = settings["cookies"]
         self.firefox_check.active = cookies["firefox"]
