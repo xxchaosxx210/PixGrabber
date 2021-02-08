@@ -10,6 +10,10 @@ from PIL import Image
 
 from dataclasses import dataclass
 
+from global_props import Settings
+
+from debug import Debug
+
 import web
 
 @dataclass
@@ -20,7 +24,7 @@ class Message:
     type   - the type of message
     id     - the thread index
     status - the types status
-    data   - extra data
+    data   - extra data. Depends on message type
     """
     type: str
     thread: str
@@ -33,18 +37,27 @@ class Threads:
     """
     static class holding global scope variables
     """
+    # commander thread reference
     commander = None
+    # global list for containing runnning threads
     grunts = []
+    # commander thread messaging queue
     commander_queue = queue.Queue()
+    # lock for the print function. Used for debugging
+    # will remove later
     stdout_lock = threading.Lock()
+    # global semaphore. this is related to max_connections
+    # found in the settings file
     semaphore = threading.Semaphore(10)
+    # global event to cancel current running task
     cancel = threading.Event()
 
 class Urls:
 
     """
-    Contains the static containers for holding found image links and URLs
-    these functions are thread safe
+    thread safe container class for storing global links
+    this is to check there arent duplicate links
+    saves a lot of time and less scraping
     """
 
     links = []
@@ -76,6 +89,11 @@ class Urls:
 
 class ImageFile:
 
+    """
+    thread safe. saves bytes read from requests
+    and saves to disk
+    """
+
     file_lock = threading.Lock()
 
     @staticmethod
@@ -90,6 +108,11 @@ class ImageFile:
 
 
 def request_from_url(url):
+    """
+    request_from_url(str)
+
+    gets the request from url and returns the requests object
+    """
     cj = web.browser_cookie3.firefox()
     r = web.requests.get(url, 
                         cookies=cj, 
@@ -116,6 +139,13 @@ def create_commander(callback):
     return Threads.commander
 
 def download_image(path, filename, response):
+    """
+    download_image(str, str, object)
+
+    path should be the file path, filename should be the name of the file
+    os.path.join is used to append path to filename
+    response is the response returned from requests.get
+    """
     # read from socket
     # store in memory
     # images shouldnt be too large
@@ -135,15 +165,25 @@ def download_image(path, filename, response):
 class Grunt(threading.Thread):
 
     """
-    Level 2 HTML parser and image finder thread
+    Worker thread which will search for images on the url passed into __init__
     """
 
-    def __init__(self, thread_index, url, **kwargs):
+    def __init__(self, thread_index, url, settings, **kwargs):
+        """
+        __init__(int, str, **kwargs)
+        thread_index should be a unique number
+        this can be used to create a unique filename
+        and can also identify the thread
+        first thread will be 0 and indexed that way
+        url is the universal resource locator to search and parse
+        """
         super().__init__(**kwargs)
         self.thread_index = thread_index
         self.url = url
+        self.settings = settings
     
     def run(self):
+        # partial function to avoid repetitive typing
         GruntMessage = functools.partial(Message, id=self.thread_index, thread="grunt")
         Threads.semaphore.acquire()
         if not Threads.cancel.is_set():
@@ -204,6 +244,8 @@ def commander_thread(callback):
     callback(Message(thread="commander", type="message", data={"message": "Commander thread has loaded. Waiting to scan"}))
     # stops code getting to long verbose
     MessageMain = functools.partial(Message, thread="commander", type="message")
+    # settings dict will contain the settings at start of scraping
+    settings = {}
     while not quit:
         try:
             # Get the json object from the global queue
@@ -218,9 +260,15 @@ def commander_thread(callback):
                         grunts = []
                         _task_running = True
 
+                        # load the settings from file
+                        # create a new instance of it in memory
+                        # we dont want these values to change
+                        # whilst downloading and saving to file
+                        settings = dict(Settings.load())
+
                         callback(MessageMain(data={"message": "Starting Threads..."}))
                         for thread_index, url in enumerate(r.data["urls"]):
-                            grunts.append(Grunt(thread_index, url))
+                            grunts.append(Grunt(thread_index, url, settings))
                         for _grunt in grunts:
                             _grunt.start()
 
