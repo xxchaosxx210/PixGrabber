@@ -1,0 +1,177 @@
+#:include app_theme.kv
+
+<VerticalContainer@MDBoxLayout>:
+    orientation: "horizontal"
+    size_hint: None, None
+    height: "20dp"
+    width: "200dp"
+
+<StyleLabel@MDLabel>
+    size_hint_y: None
+    height: self.texture_size[1]
+    theme_text_color: "Primary"
+
+<SettingsContainer>:
+    orientation: "vertical"
+    spacing: "10dp"
+
+    ScrollView:
+        scroll_type: ["bars", "content"]
+        bar_width: "20dp"
+
+        MDGridLayout:
+            cols: 1
+            adaptive_height: True
+            padding: "20dp"
+            spacing: "40dp"
+
+            MDSeparator:
+
+            StyleLabel:
+                text: "Max Connections"
+                
+            MDSlider:
+                size_hint_y: None
+                height: "36dp"
+                min: 1
+                max: 30
+                id: id_max_connections
+                value: 10
+
+            StyleLabel:
+                text: "Connection Timeout"
+
+            VerticalContainer:
+                MDTextField:
+                    text: "5"
+                    input_filter: "int"
+
+            MDSeparator:
+
+            StyleLabel:
+                text: "Minimum image resolution size (width, height)"
+
+            VerticalContainer:
+
+                MDTextField:
+                    text: "200"
+                    input_filter: "int"
+                    id: id_min_width_text
+                MDTextField:
+                    text: "200"
+                    input_filter: "int"
+                    id: id_min_height_text
+
+            MDSeparator:
+
+            StyleLabel:
+                text: "Thumbnail links only"
+
+            VerticalContainer:
+
+                MDSwitch:
+                    active: True
+            
+            MDSeparator:
+
+            StyleLabel:
+                text: "Download Folder"
+
+            MDBoxLayout:
+                orientation: "horizontal"
+                size_hint_y: None
+                height: "20dp"
+                MDTextField:
+                    text: ""
+                    id: id_save_path_text
+                MDIconButton:
+                    icon: "folder-open"
+
+            StyleLabel:
+                text: "Add a unique Folder name"
+            
+            VerticalContainer:
+
+                MDSwitch:
+                    active: True
+                    id: id_unique_name_check
+            
+            MDSeparator:
+
+            StyleLabel:
+                text: "Generate Filenames (prefixed)"
+
+            VerticalContainer:
+
+                MDCheckbox:
+                    active: True
+                    id: id_gen_prefix_check
+                
+                MDTextField:
+                    text: "image"
+                    id: id_gen_prefix_text
+            
+            MDSeparator:
+
+            StyleLabel:
+                text: "Save selected image formats"
+
+            VerticalContainer:
+                MDLabel:
+                    text: "JPG"
+                MDCheckbox:
+                    active: True
+            VerticalContainer:
+                MDLabel:
+                    text: "PNG"
+                MDCheckbox:
+                    active: True
+            VerticalContainer:
+                MDLabel:
+                    text: "GIF"
+                MDCheckbox:
+                    active: True
+            VerticalContainer:
+                MDLabel:
+                    text: "BMP"
+                MDCheckbox:
+                    active: True
+            VerticalContainer:
+                MDLabel:
+                    text: "ICO"
+                MDCheckbox:
+                    active: True
+            VerticalContainer:
+                MDLabel:
+                    text: "TIFF"
+                MDCheckbox:
+                    active: True
+            VerticalContainer:
+                MDLabel:
+                    text: "TGA"
+                MDCheckbox:
+                    active: True
+            
+            MDSeparator:
+
+            StyleLabel:
+                text: "If file already exists in download folder..."
+            
+            VerticalContainer:
+                MDLabel:
+                    text: "Skip"
+                MDCheckbox:
+                    group: "file_exists"
+                    active: False
+            VerticalContainer:
+                MDLabel:
+                    text: "Overwrite"
+                MDCheckbox:
+                    group: "file_exists"
+                    active: True
+            VerticalContainer:
+                MDLabel:
+                    text: "Rename"
+                MDCheckbox:
+                    group: "file_exists"
+                    active: False
