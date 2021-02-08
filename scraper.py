@@ -3,7 +3,10 @@ import queue
 import functools
 import os
 from io import BytesIO
-from PIL import Image
+from PIL import (
+    Image,
+    UnidentifiedImageError
+)
 from http.cookiejar import CookieJar
 import string
 
@@ -175,24 +178,30 @@ def download_image(filename, response, settings):
     for buff in response.iter_content(1000):
         byte_stream.write(buff)
     # load image from buffer io
-    image = Image.open(byte_stream)
-    width, height = image.size
-    # if image requirements met then save
-    if width > 200 and height > 200:
-        # check if directory exists
-        Threads.new_folder_lock.acquire()
-        if not os.path.exists(settings["save_path"]):
-            os.mkdir(settings["save_path"])
-        if settings["unique_pathname"]["enabled"]:
-            path = os.path.join(settings["save_path"], settings["unique_pathname"]["name"])
-            if not os.path.exists(path):
-                os.mkdir(path)
-        else:
-            path = settings["save_path"]
-        Threads.new_folder_lock.release()
-        ImageFile.write_to_file(path, filename, byte_stream)
-    byte_stream.close()        
-    image.close()
+    try:
+        image = Image.open(byte_stream)
+    except UnidentifiedImageError as err:
+        image = None
+        Debug.log("IMAGE_OPEN_ERROR", err, url=response.url, error=err.__str__())
+        Debug.log_file("ImageOpenError", "download_image", f"Error opening image from {response.url}")
+    if image:
+        width, height = image.size
+        # if image requirements met then save
+        if width > 200 and height > 200:
+            # check if directory exists
+            Threads.new_folder_lock.acquire()
+            if not os.path.exists(settings["save_path"]):
+                os.mkdir(settings["save_path"])
+            if settings["unique_pathname"]["enabled"]:
+                path = os.path.join(settings["save_path"], settings["unique_pathname"]["name"])
+                if not os.path.exists(path):
+                    os.mkdir(path)
+            else:
+                path = settings["save_path"]
+            Threads.new_folder_lock.release()
+            ImageFile.write_to_file(path, filename, byte_stream)
+        image.close()
+    byte_stream.close()  
 
 def _assign_unique_name(url, html_doc):
     """
@@ -363,6 +372,7 @@ def commander_thread(callback):
                 elif r.type == "fetch":                
                     if not _task_running:
                         # Load settings
+                        callback(Message(thread="commander", type="fetch", status="started"))
                         settings = Settings.load()
                         callback(MessageMain(data={"message": "Initializing the global search filter..."}))
                         # compile our filter matches only add those from the filter list

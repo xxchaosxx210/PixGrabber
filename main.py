@@ -27,6 +27,10 @@ class MainContainer(MDBoxLayout):
     settings_container = ObjectProperty(None)
 
 class MainApp(MDApp):
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.theme_cls.theme_style = "Dark"
     
     def on_start(self):
         # load the settings
@@ -58,6 +62,8 @@ class MainApp(MDApp):
                     value = len(msg.data.get("urls"))
                     self.root.download_container.progressbar.max = value
                     self.root.download_container.progressbar.value = 0
+                elif msg.status == "started":
+                    self.root.download_container.statusbox.clear()
             elif msg.type == "cancelled":
                 self.root.download_container.statusbox.update(
                         "COMMANDER",

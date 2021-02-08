@@ -1,0 +1,79 @@
+#:include app_theme.kv
+
+<Header@MDLabel>:
+    text_color: app.theme_cls.primary_color
+    theme_text_color: "Custom"
+    text_size: "16sp"
+    size_hint_y: None
+    height: "12sp"
+
+<DownloadBoxContainer>:
+    size_hint: 1, 1
+    orientation: "vertical"
+    app: app
+    path_textfield: id_path.text
+    statusbox: id_statusbox
+    progressbar: id_progress_bar
+
+    padding: "40dp"
+    spacing: "20dp"
+
+    MDBoxLayout:
+        size_hint: 1, .1
+        orientation: "horizontal"
+        spacing: "10dp"
+        padding: "10dp"
+
+        MDTextField:
+            size_hint: .9, None
+            height: dp(48)
+            id: id_path
+            text: root.path_textfield
+            hint_text: "Add Url here"
+
+        MDIconButton:
+            id: id_fetch_button
+            icon: "image-search"
+            on_release: root.on_fetch_button()
+            
+        MDIconButton:
+            id: id_cancel_button
+            icon: "stop"
+            on_release: root.on_cancel_button()
+
+        MDIconButton:
+            on_release: root.on_start_button()
+            id: id_start_button
+            icon: "download"
+    
+    MDSeparator:
+
+    Header:
+        text: "Status"
+
+    StatusBox:
+        orientation: "vertical"
+        size_hint: 1, .8
+        text: id_status_label.text
+        id: id_statusbox
+        scrollview: id_scrollview
+        label: id_status_label
+
+        ScrollView:
+            scroll_type: ["bars"]
+            bar_width: "20dp"
+            id: id_scrollview
+            scroll_y: 1
+
+            MDLabel:
+                size_hint_y: None
+                height: self.texture_size[1]
+                text: root.statusbox.text
+                id: id_status_label
+
+    MDProgressBar:
+        size_hint: 1, .1
+        min: 0
+        max: 100
+        value: 0
+        id: id_progress_bar
