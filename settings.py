@@ -37,12 +37,35 @@ DEFAULT_SETTINGS = {
 class SettingsContainer(MDBoxLayout):
 
     max_connections_slider = ObjectProperty(None)
-    connection_timeout_text = NumericProperty(0)
-
+    connection_timeout_text = StringProperty("")
+    min_width_text = StringProperty("")
+    min_height_text = StringProperty("")
+    thumbs_only_check = ObjectProperty(None)
+    save_path_text = StringProperty("")
+    unique_folder_name = ObjectProperty(None)
+    gen_filenames = ObjectProperty(None)
+    gen_prefix_text = StringProperty("")
     
     def load_settings(self, settings):
         self.max_connections_slider.value = settings["max_connections"]
-        self.connection_timeout_text = settings["connection_timeout"]
+        self.connection_timeout_text = str(settings["connection_timeout"])
+
+        minsize = settings["minimum_image_resolution"]
+        self.min_width_text = str(minsize["width"])
+        self.min_height_text = str(minsize["height"])
+
+        self.thumbs_only_check.active = settings["thumbnails_only"]
+
+        self.save_path_text = settings["save_path"]
+
+        self.unique_folder_name.active = settings["unique_pathname"]
+
+        temp = settings["generate_filenames"]
+        self.gen_filenames.active = temp["enabled"]
+        if temp["enabled"]:
+            self.gen_prefix_text = temp["name"]
+
+
 
 def _test():
     from kivymd.app import MDApp

@@ -17,6 +17,13 @@
 
     max_connections_slider: id_max_connections
     connection_timeout_text: id_connection_timeout.text
+    min_width_text: id_min_width_text.text
+    min_height_text: id_min_height_text.text
+    thumbs_only_check: id_thumbs_only_check
+    save_path_text: id_save_path_text.text
+    unique_folder_name: id_unique_name_check
+    gen_filenames: id_gen_prefix_check
+    gen_prefix_text: id_gen_prefix_text.text
 
     ScrollView:
         scroll_type: ["bars", "content"]
@@ -57,11 +64,11 @@
             VerticalContainer:
 
                 MDTextField:
-                    text: "200"
+                    text: root.min_width_text
                     input_filter: "int"
                     id: id_min_width_text
                 MDTextField:
-                    text: "200"
+                    text: root.min_height_text
                     input_filter: "int"
                     id: id_min_height_text
 
@@ -74,6 +81,7 @@
 
                 MDSwitch:
                     active: True
+                    id: id_thumbs_only_check
             
             MDSeparator:
 
@@ -85,7 +93,7 @@
                 size_hint_y: None
                 height: "20dp"
                 MDTextField:
-                    text: ""
+                    text: root.save_path_text
                     id: id_save_path_text
                 MDIconButton:
                     icon: "folder-open"
@@ -112,7 +120,7 @@
                 
                 MDTextField:
                     pos_hint:{"center_y": .4}
-                    text: "image"
+                    text: root.gen_prefix_text
                     id: id_gen_prefix_text
             
             MDSeparator:
