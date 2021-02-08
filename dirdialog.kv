@@ -1,3 +1,5 @@
+#:import Window kivy.core.window.Window
+
 <StyleLabel@MDLabel>
     size_hint_y: None
     height: self.texture_size[1]
@@ -6,8 +8,39 @@
 <Content>:
     orientation: "vertical"
 
+    canvas.before:
+        Color:
+            rgba: 1, 0, 0, 1
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
     MDSeparator:
 
     StyleLabel:
         text: "Save Path"
+    
+    ScrollView:
+        size_hint: 1, .6
+        scroll_type: ["content"]
+        bar_width: "20dp"
+        canvas.before:
+            Color:
+                rgba: 1, 0, 0, 1
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        MDList:
+    
+    MDSeparator:
+    
+    MDGridLayout:
+        cols: 2
+        MDLabel:
+            align: "center"
+            text: "Folder"
+        MDTextField:
+            size_hint: .9, 1
+            text: "Unknown"
+            id: id_folder_name
     

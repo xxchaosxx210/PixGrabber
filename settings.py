@@ -8,10 +8,14 @@ from kivy.properties import (
     ObjectProperty
 )
 
+from dirdialog import create_dirdialog
+
 Builder.load_file("settings.kv")
 
 
 class SettingsContainer(MDBoxLayout):
+
+    dirdialog = ObjectProperty(None)
 
     tga_check = ObjectProperty(None)
     tiff_check = ObjectProperty(None)
@@ -43,6 +47,16 @@ class SettingsContainer(MDBoxLayout):
     skip_file_check = ObjectProperty(None)
     overwrite_check = ObjectProperty(None)
     rename_check = ObjectProperty(None)
+
+    def on_dir_button(self, *args):
+        self.dirdialog.path = self.save_path_text
+        self.dirdialog.open()
+
+    def on_dirdialog_cancel(self, *args):
+        self.dirdialog.dismiss()
+    
+    def on_dirdialog_ok(self, *args):
+        self.dirdialog.dismsiss()
 
     def on_file_exists(self, radiobutton):
         settings = Settings.load()
@@ -125,6 +139,12 @@ class SettingsContainer(MDBoxLayout):
         Settings.save(settings)
     
     def load_settings(self, settings):
+
+        # create the dirdialog
+        self.dirdialog = create_dirdialog("Save Path",
+        settings["save_path"], self.on_dirdialog_cancel,
+        self.on_dirdialog_ok)
+
         self.max_connections_slider.value = settings["max_connections"]
         self.connection_timeout_text = str(settings["connection_timeout"])
 

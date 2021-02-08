@@ -21,8 +21,8 @@ class Content(MDBoxLayout):
 
 def create_dirdialog(title, path, on_cancel, on_ok):
     buttons = [
-        MDFlatButton(text="Close", id="id_close", on_release=on_cancel),
-        MDFlatButton(text="OK", id="id_ok", on_release=on_ok)
+        MDFlatButton(text="Close", on_release=on_cancel),
+        MDFlatButton(text="OK", on_release=on_ok)
     ]
     return DirDialog(
         path=path,
@@ -30,7 +30,10 @@ def create_dirdialog(title, path, on_cancel, on_ok):
         type="custom",
         auto_dismiss=False,
         content_cls=Content(),
-        buttons=buttons)
+        buttons=buttons,
+        size_hint=[None, None],
+        height=400,
+        width=400)
 
 class DirDialog(MDDialog):
 
