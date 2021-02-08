@@ -56,7 +56,11 @@ class SettingsContainer(MDBoxLayout):
         self.dirdialog.dismiss()
     
     def on_dirdialog_ok(self, *args):
-        self.dirdialog.dismsiss()
+        self.save_path_text = self.dirdialog.get_path()
+        settings = Settings.load()
+        settings["save_path"] = self.save_path_text
+        Settings.save(settings)
+        self.dirdialog.dismiss()
 
     def on_file_exists(self, radiobutton):
         settings = Settings.load()

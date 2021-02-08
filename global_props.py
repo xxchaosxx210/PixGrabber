@@ -36,7 +36,7 @@ DEFAULT_SETTINGS = {
     "connection_timeout": 5,
     "minimum_image_resolution": {"width": 200, "height": 200},
     "thumbnails_only": True,
-    "save_path": os.path.join(PATH, DEFAULT_PICTURE_PATH),
+    "save_path": os.getcwd(),
     "unique_pathname": True,
     "generate_filenames": {"enabled": True, "name": "image"},
     "images_to_search": {

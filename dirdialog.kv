@@ -5,42 +5,43 @@
     height: self.texture_size[1]
     theme_text_color: "Primary"
 
+<FolderListItem>:
+    text: "Unnknown Folder"
+    IconLeftWidget:
+        icon: "folder"
+
+<FolderBackListItem>:
+    text: f"..\\"
+    IconLeftWidget:
+        icon: "folder-move"
+
+<DirDialog>:
+    size_hint: .7, .7
+    type: "custom"
+
 <Content>:
     orientation: "vertical"
+    size_hint_y: None
+    height: "300dp"
+    padding: "20dp"
+    spacing: "20dp"
 
-    canvas.before:
-        Color:
-            rgba: 1, 0, 0, 1
-        Rectangle:
-            pos: self.pos
-            size: self.size
-
-    MDSeparator:
-
-    StyleLabel:
-        text: "Save Path"
+    path: id_full_path.text
+    dirlist: id_listview
     
     ScrollView:
-        size_hint: 1, .6
         scroll_type: ["content"]
         bar_width: "20dp"
-        canvas.before:
-            Color:
-                rgba: 1, 0, 0, 1
-            Rectangle:
-                pos: self.pos
-                size: self.size
+        size_hint: 1, .9
         MDList:
+            id: id_listview
     
     MDSeparator:
-    
-    MDGridLayout:
-        cols: 2
+
+    MDBoxLayout:
+        size_hint: 1, .1
         MDLabel:
-            align: "center"
-            text: "Folder"
-        MDTextField:
-            size_hint: .9, 1
-            text: "Unknown"
-            id: id_folder_name
+            text: root.path
+            id: id_full_path
+            font_size: "14sp"
     
