@@ -48,7 +48,8 @@ DEFAULT_SETTINGS = {
         "tiff": False,
         "tga": False},
     "filter_search": {
-        "filters": []}
+        "filters": []},
+    "file_exists": "overwrite"
     }
 
 global_settings = DEFAULT_SETTINGS

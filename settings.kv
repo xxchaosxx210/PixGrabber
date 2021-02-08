@@ -42,6 +42,10 @@
     bmp_check: id_bmp_check
     ico_check: id_ico_check
 
+    skip_file_check: id_skip_check
+    overwrite_check: id_overwrite_check
+    rename_check: id_rename_check
+
     ScrollView:
         scroll_type: ["bars", "content"]
         bar_width: "20dp"
@@ -249,18 +253,21 @@
                 MDCheckbox:
                     group: "file_exists"
                     active: False
-                    on_active: root.on_checkbox_active(self)
+                    on_active: root.on_file_exists(self)
+                    id: id_skip_check
             VerticalContainer:
                 MDLabel:
                     text: "Overwrite"
                 MDCheckbox:
                     group: "file_exists"
-                    active: True
-                    on_active: root.on_checkbox_active(self)
+                    active: False
+                    on_active: root.on_file_exists(self)
+                    id: id_overwrite_check
             VerticalContainer:
                 MDLabel:
                     text: "Rename"
                 MDCheckbox:
                     group: "file_exists"
                     active: False
-                    on_active: root.on_checkbox_active(self)
+                    on_active: root.on_file_exists(self)
+                    id: id_rename_check

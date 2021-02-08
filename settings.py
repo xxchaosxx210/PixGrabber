@@ -10,30 +10,6 @@ from kivy.properties import (
 
 Builder.load_file("settings.kv")
 
-"""
-DEFAULT_SETTINGS = {
-    "app_version": VERSION,
-    "browser_cookies": {"firefox": True, "chrome": False, "opera": False, "edge": False},
-    "proxy": {"enable": False, "ip": "", "port": 0, "username": "", "password": ""},
-    "max_connections": 10,
-    "connection_timeout": 5,
-    "minimum_image_resolution": {"width": 200, "height": 200},
-    "thumbnails_only": True,
-    "save_path": os.path.join(PATH, DEFAULT_PICTURE_PATH),
-    "unique_pathname": True,
-    "generate_filenames": {"enabled": True, "name": "image"},
-    "images_to_search": {
-        "jpg": True, 
-        "png": False,
-        "gif": False,
-        "bmp": False,
-        "ico": False,
-        "tiff": False,
-        "tga": False},
-    "filter_search": {
-        "filters": []}
-    }
-"""
 
 class SettingsContainer(MDBoxLayout):
 
@@ -63,6 +39,20 @@ class SettingsContainer(MDBoxLayout):
     chrome_check = ObjectProperty(None)
     opera_check = ObjectProperty(None)
     edge_check = ObjectProperty(None)
+
+    skip_file_check = ObjectProperty(None)
+    overwrite_check = ObjectProperty(None)
+    rename_check = ObjectProperty(None)
+
+    def on_file_exists(self, radiobutton):
+        settings = Settings.load()
+        if self.skip_file_check.active:
+            settings["file_exists"] = "skip"
+        elif self.overwrite_check.active:
+            settings["file_exists"] = "overwrite"
+        else:
+            settings["file_exists"] = "rename"
+        Settings.save(settings)
 
     def on_image_ext_check(self, checkbox):
         settings = Settings.load()
@@ -133,9 +123,6 @@ class SettingsContainer(MDBoxLayout):
         cookies["opera"] = self.opera_check.active
         cookies["edge"] = self.edge_check.active
         Settings.save(settings)
-
-    def on_checkbox_active(self, checkbox):
-        return True
     
     def load_settings(self, settings):
         self.max_connections_slider.value = settings["max_connections"]
@@ -169,6 +156,14 @@ class SettingsContainer(MDBoxLayout):
         self.ico_check.active = i["ico"]
         self.tiff_check.active = i["tiff"]
         self.tga_check.active = i["tga"]
+
+        i = settings["file_exists"]
+        if i == "skip":
+            self.skip_file_check.active = True
+        elif i == "overwrite":
+            self.overwrite_check.active = True
+        else:
+            self.rename_check.active = True
 
 
 def _test():
