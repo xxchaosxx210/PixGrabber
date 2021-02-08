@@ -30,7 +30,7 @@ _file_lock = Lock()
 
 DEFAULT_SETTINGS = {
     "app_version": VERSION,
-    "browser_cookies": {"firefox": True, "chrome": False, "opera": False, "edge": False},
+    "cookies": {"firefox": True, "chrome": False, "opera": False, "edge": False},
     "proxy": {"enable": False, "ip": "", "port": 0, "username": "", "password": ""},
     "max_connections": 10,
     "connection_timeout": 3,

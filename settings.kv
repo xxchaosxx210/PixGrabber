@@ -17,13 +17,30 @@
 
     max_connections_slider: id_max_connections
     connection_timeout_text: id_connection_timeout.text
+    
     min_width_text: id_min_width_text.text
     min_height_text: id_min_height_text.text
+    
     thumbs_only_check: id_thumbs_only_check
+    
     save_path_text: id_save_path_text.text
     unique_folder_name: id_unique_name_check
+    
     gen_filenames: id_gen_prefix_check
     gen_prefix_text: id_gen_prefix_text.text
+    
+    firefox_check: id_firefox_check
+    chrome_check: id_chrome_check
+    opera_check: id_opera_check
+    edge_check: id_edge_check
+
+    tga_check: id_tga_check
+    tiff_check: id_tiff_check
+    png_check: id_png_check
+    gif_check: id_gif_check
+    jpg_check: id_jpg_check
+    bmp_check: id_bmp_check
+    ico_check: id_ico_check
 
     ScrollView:
         scroll_type: ["bars", "content"]
@@ -46,6 +63,7 @@
                     max: 30
                     id: id_max_connections
                     value: 10
+                    on_touch_up: root.on_max_connections(self)
 
             StyleLabel:
                 text: "Connection Timeout"
@@ -55,6 +73,7 @@
                     text: root.connection_timeout_text
                     input_filter: "int"
                     id: id_connection_timeout
+                    on_text: root.on_timeout(self.text)
 
             MDSeparator:
 
@@ -67,10 +86,12 @@
                     text: root.min_width_text
                     input_filter: "int"
                     id: id_min_width_text
+                    on_text: root.on_min_width(self.text)
                 MDTextField:
                     text: root.min_height_text
                     input_filter: "int"
                     id: id_min_height_text
+                    on_text: root.on_min_height(self.text)
 
             MDSeparator:
 
@@ -82,6 +103,7 @@
                 MDSwitch:
                     active: True
                     id: id_thumbs_only_check
+                    on_active: root.on_thumbnails_only(self)
             
             MDSeparator:
 
@@ -95,6 +117,7 @@
                 MDTextField:
                     text: root.save_path_text
                     id: id_save_path_text
+                    on_text: root.on_save_path_text()
                 MDIconButton:
                     icon: "folder-open"
 
@@ -106,6 +129,7 @@
                 MDSwitch:
                     active: True
                     id: id_unique_name_check
+                    on_active: root.on_unique_name(self)
             
             MDSeparator:
 
@@ -133,21 +157,29 @@
                     text: "Firefox"
                 MDCheckbox:
                     active: True
+                    id: id_firefox_check
+                    on_active: root.on_cookies_checkbox(self)
             VerticalContainer:
                 MDLabel:
                     text: "Google Chrome"
                 MDCheckbox:
                     active: True
+                    id: id_chrome_check
+                    on_active: root.on_cookies_checkbox(self)
             VerticalContainer:
                 MDLabel:
                     text: "Opera"
                 MDCheckbox:
                     active: False
+                    id: id_opera_check
+                    on_active: root.on_cookies_checkbox(self)
             VerticalContainer:
                 MDLabel:
                     text: "Edge"
                 MDCheckbox:
                     active: False
+                    id: id_edge_check
+                    on_active: root.on_cookies_checkbox(self)
             
             MDSeparator:
 
@@ -159,36 +191,43 @@
                     text: "JPG"
                 MDCheckbox:
                     active: True
+                    id: id_jpg_check
             VerticalContainer:
                 MDLabel:
                     text: "PNG"
                 MDCheckbox:
                     active: True
+                    id: id_png_check
             VerticalContainer:
                 MDLabel:
                     text: "GIF"
                 MDCheckbox:
                     active: True
+                    id: id_gif_check
             VerticalContainer:
                 MDLabel:
                     text: "BMP"
                 MDCheckbox:
                     active: True
+                    id: id_bmp_check
             VerticalContainer:
                 MDLabel:
                     text: "ICO"
                 MDCheckbox:
                     active: True
+                    id: id_ico_check
             VerticalContainer:
                 MDLabel:
                     text: "TIFF"
                 MDCheckbox:
                     active: True
+                    id: id_tiff_check
             VerticalContainer:
                 MDLabel:
                     text: "TGA"
                 MDCheckbox:
                     active: True
+                    id: id_tga_check
             
             MDSeparator:
 
@@ -201,15 +240,18 @@
                 MDCheckbox:
                     group: "file_exists"
                     active: False
+                    on_active: root.on_checkbox_active(self)
             VerticalContainer:
                 MDLabel:
                     text: "Overwrite"
                 MDCheckbox:
                     group: "file_exists"
                     active: True
+                    on_active: root.on_checkbox_active(self)
             VerticalContainer:
                 MDLabel:
                     text: "Rename"
                 MDCheckbox:
                     group: "file_exists"
                     active: False
+                    on_active: root.on_checkbox_active(self)

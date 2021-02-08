@@ -260,6 +260,9 @@ def commander_thread(callback):
 
             elif r.thread == "grunt":
                 callback(r)
+            
+            elif r.thread == "settings":
+                callback(MessageMain(data=r.data))
 
         except queue.Empty as err:
             print(f"Queue error: {err.__str__()}")
